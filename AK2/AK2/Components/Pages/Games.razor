@@ -1,7 +1,13 @@
 ﻿@page "/games";
 @inject Data.GamesStorageAndQuery gamesQuery;
+@rendermode InteractiveServer
+
 
 <h3>Games</h3>
+
+<div class="search-box">
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Name..."
+</div>
 
 <table border="1" cellpadding="8">
 	<thead>
@@ -14,7 +20,7 @@
 	</thead>
 
 	<tbody>
-		@foreach (var game in games)
+		@foreach (var game in FilterdItems)
 		{
 			<tr>
 				<td>@game.Id</td>
@@ -29,6 +35,10 @@
 
 @code {
 	private IEnumerable<BoardGame> games = [];
+	string nameFilter = string.Empty;
+
+	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
+	IEnumerable<BoardGame>? FilterdItems => games.Where(games => games.Name.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
 
 	protected override void OnInitialized()
 	{
