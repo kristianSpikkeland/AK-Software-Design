@@ -3,10 +3,10 @@
 @rendermode InteractiveServer
 
 
-<h3>Games</h3>
+<h3>Brettspill</h3>
 
 <div class="search-box">
-	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Name..."
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Navn / antall spillere"
 </div>
 
 <table border="1" cellpadding="8">
@@ -20,7 +20,7 @@
 	</thead>
 
 	<tbody>
-		@foreach (var game in FilterdItems)
+		@foreach (var game in FilteredItems)
 		{
 			<tr>
 				<td>@game.Id</td>
@@ -38,7 +38,26 @@
 	string nameFilter = string.Empty;
 
 	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
-	IEnumerable<BoardGame>? FilterdItems => games.Where(games => games.Name.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+	IEnumerable<BoardGame> FilteredItems
+	{
+		get
+		{
+			if (string.IsNullOrWhiteSpace(nameFilter))
+				return games;
+
+			var filter = nameFilter.Trim();
+
+			if (int.TryParse(filter, out int players))
+			{
+				return games.Where(g =>
+					g.MinPlayers <= players && players <= g.MaxPlayers);
+			}
+
+			return games.Where(g =>
+				g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
+		}
+	}
+	
 
 	protected override void OnInitialized()
 	{
