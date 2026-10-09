@@ -22,5 +22,13 @@ namespace AK2.Data
             return boardGames.Where(b => b.Name == boardGame);
         }
 
+        public BoardGame? GetRandomGame()
+        {
+            if (boardGames.Count == 0)
+                return null;
+
+            int index = Random.Shared.Next(boardGames.Count);
+            return boardGames[index];
+        }
     }
 }
