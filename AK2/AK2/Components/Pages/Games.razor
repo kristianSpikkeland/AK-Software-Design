@@ -1,0 +1,37 @@
+﻿@page "/games";
+@inject Data.GamesStorageAndQuery gamesQuery;
+
+<h3>Games</h3>
+
+<table border="1" cellpadding="8">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Navn</th>
+			<th>Minimum spillere</th>
+			<th>Maksimum spillere</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		@foreach (var game in games)
+		{
+			<tr>
+				<td>@game.Id</td>
+				<td>@game.Name</td>
+				<td>@game.MinPlayers</td>
+				<td>@game.MaxPlayers</td>
+			</tr>
+		}
+	</tbody>
+
+</table>
+
+@code {
+	private IEnumerable<BoardGame> games = [];
+
+	protected override void OnInitialized()
+	{
+		games = gamesQuery.GetAllGames();
+	}
+}
