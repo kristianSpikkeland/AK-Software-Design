@@ -9,6 +9,11 @@
 	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Navn / antall spillere"
 </div>
 
+@if(FilteredItems.Count() < 1)
+{
+	<p style="color:red">Ingen treff</p>	
+}
+
 <table border="1" cellpadding="8">
 	<thead>
 		<tr>
@@ -33,9 +38,25 @@
 
 </table>
 
+<p>Antall treff: @FilteredItems.Count()</p>
+
+
+<button @onclick="ShowRandomGame">Tilfeldig spill</button>
+
+@if (randomGame != null)
+{
+	<p>@randomGame.Name</p>
+}
+
+
+
+
 @code {
 	private IEnumerable<BoardGame> games = [];
 	string nameFilter = string.Empty;
+
+	public BoardGame? randomGame;
+
 
 	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
 	IEnumerable<BoardGame> FilteredItems
@@ -57,10 +78,18 @@
 				g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
 		}
 	}
-	
+
 
 	protected override void OnInitialized()
 	{
 		games = gamesQuery.GetAllGames();
+
 	}
+
+	private void ShowRandomGame()
+	{
+		randomGame = gamesQuery.GetRandomGame();
+	}
+
+	
 }
