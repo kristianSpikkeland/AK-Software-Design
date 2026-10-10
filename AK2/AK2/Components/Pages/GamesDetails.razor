@@ -1,0 +1,37 @@
+﻿@inject Data.GamesStorageAndQuery gamesQuery
+@page "/games/{Id:int}"
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+@if (game is not null)
+{
+	<h1>Detaljer</h1>
+	<GameCard Id="@game.Id" Name="@game.Name" MinPlayers="@game.MinPlayers" MaxPlayers="@game.MaxPlayers" Category="@game.Category" />
+}
+
+else
+{
+	<p>Spill ikke funnet</p>
+}
+
+@code {
+	[Parameter] public int Id { get; set; }
+
+	private BoardGame? game;
+
+	private IEnumerable<BoardGame> games = [];
+
+
+	protected override void OnInitialized()
+	{
+		games = gamesQuery.GetAllGames();
+
+	}
+
+	protected override void OnParametersSet()
+	{
+		game = gamesQuery.GetGameById(Id);
+	}
+
+	private void GoBack() => Nav.NavigateTo("/games");
+}
