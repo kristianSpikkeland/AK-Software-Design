@@ -30,5 +30,8 @@ namespace AK2.Data
             int index = Random.Shared.Next(boardGames.Count);
             return boardGames[index];
         }
+
+        public BoardGame? GetGameById(int id) =>
+            GetAllGames().FirstOrDefault(g => g.Id == id);
     }
 }
