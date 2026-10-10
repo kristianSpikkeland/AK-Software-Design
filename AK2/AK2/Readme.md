@@ -2,11 +2,11 @@
 # Oppgave 1
 
 ## Info 
-Siden games har ansvar for å vise alle spill mens GameCard er en gjenbrukbar komponent som blir implementert i GamesDetail siden.
+Siden games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
 GamesDetail viser detaljene for et spill. På games siden er det lagt til lenker som man kan klikke på for å komme til detaljene for et spill.
 Grunnen til at jeg valgte å gjøre det slik var siden jeg har forsøkt å tenke på brukeren og at brukergrensesnittet skal være minimalistisk og ryddig. 
 På samme grunnlag er derfor filteret for antall spillere bakt inn sammen med navn filteret. 
-Videre har man tenkt en del rundt hvordan man kan lage en løsning som skalerer. Det å bare ha en GamesDetails side som bruker GameCard istedenfor en side per spill
+Videre har man tenkt en del rundt hvordan man kan lage en løsning som skalerer. Det å bare ha en GamesDetails side istedenfor en side per spill
 har jeg ansett som gunstig. 
 
 ## KI bruk
@@ -124,9 +124,47 @@ private void ApplyFilter()
 }
 ```
 
+Prompt: Hvordan kan man bruke foreach for visning av komponenter
+
+Svar: Du skriver komponenten inne i @foreach på samme måte som vanlig HTML. Den lages da én gang per element i listen:
+
+```C#
+@foreach (var game in filteredGames)
+{
+    <GameCard Game="game" @key="game.Id" />
+}
+```
+@key er valgfritt, men lurt i lister som endrer seg. Blazor bruker det til å holde styr på hvilket kort som hører til hvilket spill når listen filtreres. 
+Uten @key kan Blazor gjenbruke feil kort når elementer forsvinner, og da kan tilstand inne i kortet havne på feil spill. Bruk noe unikt, som Id.
+
+
 Noe hjelp med tester. Hadde en tanke om å ta en liste for filteret og en liste for alle spill og sammenligne innhold.
 Etter litt chatting fikk jeg beskjed om at det var et blindspor. Valgte heller å bruke assert.Empty();
 
+## Oppgave 2
+Prompt: Hvordan henger EditForm sammen med Value og ValueChanged?
+
+Svar: De er to forskjellige ting, men de bruker det samme mønsteret.
+
+EditForm er rammen rundt et skjema. Den holder på et modellobjekt (f.eks. et BoardGame), validerer det og kaller OnValidSubmit når alt er gyldig. Selv har den ingen Value og ValueChanged.
+
+Feltene inne i skjemaet har derimot Value og ValueChanged. Blazors egne felt, som InputText og InputNumber, er bygget på akkurat det samme mønsteret som DiceRating.
+Derfor skriver du @bind-Value med stor V på dem:
+
+```C#
+<EditForm Model="game" OnValidSubmit="Save">
+    <InputText @bind-Value="game.Name" />
+    <InputNumber @bind-Value="game.MinPlayers" />
+    <DiceRating @bind-Value="game.Rating" />
+</EditForm>
+````
+
+
+
+## Generell KI bruk
+Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. For oppgave 1 viste det seg at jeg haddde laget fem parametre i GameCard istedenfor 
+å bare gi et BoardGame objekt. Programmet krasjet når jeg klikket på spill linkene etter at jeg implementerte endringen uten at jeg skjønte hvorfor.
+Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de gamle parameteren fra GameCard.
 
 
 # Andre kilder
