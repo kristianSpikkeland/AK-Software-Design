@@ -6,7 +6,7 @@
 @if (game is not null)
 {
 	<h1>Detaljer</h1>
-	<GameCard Id="@game.Id" Name="@game.Name" MinPlayers="@game.MinPlayers" MaxPlayers="@game.MaxPlayers" Category="@game.Category" />
+	<GameCard boardGame="game" />
 }
 
 else

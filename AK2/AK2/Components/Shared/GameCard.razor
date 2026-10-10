@@ -2,16 +2,13 @@
 @rendermode InteractiveServer
 
 <div class= "gameCard">
-	<h2>@Name</h2>
-	<p>Minimum players: @MinPlayers</p>
-	<p>Maximum players: @MaxPlayers</p>
-	<p>Category: @Category</p>
+	<h2>@BoardGame.Name</h2>
+	<p>Minimum players: @BoardGame.MinPlayers</p>
+	<p>Maximum players: @BoardGame.MaxPlayers</p>
+	<p>Category: @BoardGame.Category</p>
 </div>
 
 @code {
-	[Parameter] public int Id { get; set; }
-	[Parameter] public string Name { get; set; } = "";
-	[Parameter] public int MinPlayers { get; set; }
-	[Parameter] public int MaxPlayers { get; set; }
-	[Parameter] public string Category { get; set; } = "";
+	[Parameter] public BoardGame? BoardGame { get; set; }
+	
 }
