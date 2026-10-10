@@ -20,6 +20,7 @@ namespace AK2.Models
             Name = name;
             MinPlayers = minPlayers;
             MaxPlayers = maxPlayers;
+            Category = category;
 
         }
     }
