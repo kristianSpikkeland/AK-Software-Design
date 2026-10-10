@@ -1,11 +1,11 @@
 ﻿
-@rendermode InteractiveServer
 
 <div class= "gameCard">
 	<h2>@BoardGame.Name</h2>
-	<p>Minimum players: @BoardGame.MinPlayers</p>
-	<p>Maximum players: @BoardGame.MaxPlayers</p>
-	<p>Category: @BoardGame.Category</p>
+	<p>Minimum spillere: @BoardGame.MinPlayers</p>
+	<p>Maksimum spillere: @BoardGame.MaxPlayers</p>
+	<p>Kategori: @BoardGame.Category</p>
+	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" />
 </div>
 
 @code {
