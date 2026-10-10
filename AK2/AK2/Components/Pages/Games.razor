@@ -28,10 +28,10 @@
 		@foreach (var game in FilteredItems)
 		{
 			<tr>
-				<td>@game.Id</td>
-				<td>@game.Name</td>
+				<td>@game.Id</td> 
+				<td><a href="/games/@game.Id">@game.Name</a></td>
 				<td>@game.MinPlayers</td>
-				<td>@game.MaxPlayers</td>
+				<td>@game.MaxPlayers</td>				
 			</tr>
 		}
 	</tbody>
