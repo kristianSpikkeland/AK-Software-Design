@@ -40,6 +40,23 @@ namespace AK2Test
             Assert.NotEmpty(monopolFilter);
         }
 
+
+        // This method checks that the filter is case insensitive
+        [Theory]
+        [InlineData("mOnOpOl")]
+        [InlineData("RISK")]
+        [InlineData("settlers")]
+        public void FilterGames_WhenMixInUpperAndLowerCase_ShouldNotCare(string value)
+        {
+            // Act
+            _dummy.CreateDummyGames();
+            var filter = _query.FilterGames(value);
+            var games = _query.GetAllGames();
+
+            // Assert
+            Assert.NotEmpty(filter);
+        }
+
         [Theory]
         [InlineData("2")]
         [InlineData("3")]
