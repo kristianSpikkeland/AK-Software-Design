@@ -1,0 +1,24 @@
+﻿
+<h3>Terningkast</h3>
+
+<p>Vurdering: @BoardGame.Rating</p>
+
+@if (ReadOnly == false)
+{
+	<p>Terning skal trilles for spillet 😊</p>
+}
+
+
+@code {
+	[Parameter] public BoardGame? BoardGame { get; set; }
+	[Parameter] public string Value { get; set; }
+	[Parameter] public EventCallback<int> ValueChanged { get; set; }
+	
+	//Setting default value to true  
+	[Parameter] public bool ReadOnly { get; set; } = true;
+
+	private void UpdateRating()
+	{
+		
+	}
+}
