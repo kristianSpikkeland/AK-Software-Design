@@ -14,29 +14,15 @@
 	<p style="color:red">Ingen treff</p>	
 }
 
-<table border="1" cellpadding="8">
-	<thead>
-		<tr>
-			<th>Id</th>
-			<th>Navn</th>
-			<th>Minimum spillere</th>
-			<th>Maksimum spillere</th>
-		</tr>
-	</thead>
 
-	<tbody>
-		@foreach (var game in filteredGames)
-		{
-			<tr>
-				<td>@game.Id</td> 
-				<td><a href="/games/@game.Id">@game.Name</a></td>
-				<td>@game.MinPlayers</td>
-				<td>@game.MaxPlayers</td>				
-			</tr>
-		}
-	</tbody>
+@foreach (var game in filteredGames)
+{
+	<GameCard BoardGame="game" @key="game.Id" />
+	<p><a href="/games/@game.Id">Detaljer</a></p>
+	<br />
+}
 
-</table>
+
 
 <p>Antall treff: @filteredGames.Count()</p>
 
@@ -53,6 +39,7 @@
 
 @code {
 	private IEnumerable<BoardGame> games = [];
+	[Parameter] public BoardGame? game { get; set; }
 	string nameFilter = string.Empty;
 
 	public BoardGame? randomGame;
