@@ -6,7 +6,21 @@
 @if (game is not null)
 {
 	<h1>Detaljer</h1>
-	<GameCard boardGame="game" />
+	<p>Id: @game.Id</p>
+	<p>Navn: @game.Name</p>
+	<p>Kategori: @game.Category</p>
+	<p>Minimum spillere: @game.MinPlayers</p>
+	<p>Maksimum spillere: @game.MaxPlayers</p>
+	<p>Beskrivelse: @game.Description</p>
+	<br />
+
+	<DiceRating BoardGame="game" @key="game.Id" ReadOnly="false" />
+
+	<EditForm Model="@game" OnValidSubmit="Save">
+		<label>Ditt terningkast: </label><InputNumber @bind-Value="game.Rating" />
+		<button type="submit">Lagre vurdering</button>
+	</EditForm>
+	<br />
 }
 
 else
@@ -36,4 +50,9 @@ else
 	}
 
 	private void GoBack() => Nav.NavigateTo("/games");
+
+	public void Save()
+	{
+		
+	}
 }
