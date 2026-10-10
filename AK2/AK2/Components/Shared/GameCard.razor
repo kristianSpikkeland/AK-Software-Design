@@ -1,0 +1,17 @@
+﻿
+@rendermode InteractiveServer
+
+<div class= "gameCard">
+	<h2>@Name</h2>
+	<p>Minimum players: @MinPlayers</p>
+	<p>Maximum players: @MaxPlayers</p>
+	<p>Category: @Category</p>
+</div>
+
+@code {
+	[Parameter] public int Id { get; set; }
+	[Parameter] public string Name { get; set; } = "";
+	[Parameter] public int MinPlayers { get; set; }
+	[Parameter] public int MaxPlayers { get; set; }
+	[Parameter] public string Category { get; set; } = "";
+}
