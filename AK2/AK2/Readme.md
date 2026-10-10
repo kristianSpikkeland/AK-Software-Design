@@ -4,6 +4,10 @@
 ## Info 
 Siden games har ansvar for å vise alle spill mens GameCard er en gjenbrukbar komponent som blir implementert i GamesDetail siden.
 GamesDetail viser detaljene for et spill. På games siden er det lagt til lenker som man kan klikke på for å komme til detaljene for et spill.
+Grunnen til at jeg valgte å gjøre det slik var siden jeg har forsøkt å tenke på brukeren og at brukergrensesnittet skal være minimalistisk og ryddig. 
+På samme grunnlag er derfor filteret for antall spillere bakt inn sammen med navn filteret. 
+Videre har man tenkt en del rundt hvordan man kan lage en løsning som skalerer. Det å bare ha en GamesDetails side som bruker GameCard istedenfor en side per spill
+har jeg ansett som gunstig. 
 
 ## KI bruk
 * Noe debugging av egenskrevet Linq spørring.
@@ -98,8 +102,34 @@ public BoardGame? GetGameById(int id) =>
 
 Opplevde problemer med at category ikke var synlig på GamesDetail siden min. Spurte KI og fikk til svar at Category ikke var lagret i konstruktør.
 
+Prompt: Har flyttet filtreringen ut i en egen metode i StorageAndQuery klassen. Hva er beste praksis for å aktivere filteret i Games klassen?
+
+Svar (utdrag): 
+
+Filtrer når teksten endres (anbefalt)
+
+Lagre resultatet i et felt, og oppdater det bare når brukeren skriver:
+```html
+<input type="search" @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" />
+```
+
+```C#
+private IEnumerable<BoardGame> filteredGames = [];
+
+protected override void OnInitialized() => ApplyFilter();
+
+private void ApplyFilter()
+{
+    filteredGames = gamesQuery.FilterGames(nameFilter).ToList();
+}
+```
+
+Noe hjelp med tester. Hadde en tanke om å ta en liste for filteret og en liste for alle spill og sammenligne innhold.
+Etter litt chatting fikk jeg beskjed om at det var et blindspor. Valgte heller å bruke assert.Empty();
+
+
 
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset. 
-
+Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA
 https://www.tutorialspoint.com/article/how-to-select-a-random-element-from-a-chash-list
