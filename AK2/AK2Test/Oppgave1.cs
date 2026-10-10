@@ -41,6 +41,19 @@ namespace AK2Test
         }
 
 
+        [Fact]
+        public void FilterGames_WhenMatcOnName_ShoulReturnRightAmount()
+        {
+            // Act
+            _dummy.CreateDummyGames();
+            var monopolFilter = _query.FilterGames("Monopol");
+            var games = _query.GetAllGames();
+
+            // Assert
+            Assert.Equal(1, monopolFilter.Count());
+        }
+
+
         // This method checks that the filter is case insensitive
         [Theory]
         [InlineData("mOnOpOl")]
