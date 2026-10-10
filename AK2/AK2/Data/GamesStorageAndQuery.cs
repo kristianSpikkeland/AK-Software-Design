@@ -33,5 +33,23 @@ namespace AK2.Data
 
         public BoardGame? GetGameById(int id) =>
             GetAllGames().FirstOrDefault(g => g.Id == id);
+
+
+        public IEnumerable<BoardGame> FilterGames(string nameFilter)
+        {
+            if (string.IsNullOrWhiteSpace(nameFilter))
+                return boardGames;
+
+            var filter = nameFilter.Trim();
+
+            if (int.TryParse(filter, out int players))
+            {
+                return boardGames.Where(g =>
+                    g.MinPlayers <= players && players <= g.MaxPlayers);
+            }
+
+            return boardGames.Where(g =>
+                g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
+        }
     }
 }

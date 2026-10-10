@@ -6,10 +6,10 @@
 <h3>Brettspill</h3>
 
 <div class="search-box">
-	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Navn / antall spillere"
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere"
 </div>
 
-@if(FilteredItems.Count() < 1)
+@if(filteredGames.Count() < 1)
 {
 	<p style="color:red">Ingen treff</p>	
 }
@@ -25,7 +25,7 @@
 	</thead>
 
 	<tbody>
-		@foreach (var game in FilteredItems)
+		@foreach (var game in filteredGames)
 		{
 			<tr>
 				<td>@game.Id</td> 
@@ -38,7 +38,7 @@
 
 </table>
 
-<p>Antall treff: @FilteredItems.Count()</p>
+<p>Antall treff: @filteredGames.Count()</p>
 
 
 <button @onclick="ShowRandomGame">Tilfeldig spill</button>
@@ -59,32 +59,15 @@
 
 
 	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
-	IEnumerable<BoardGame> FilteredItems
+	IEnumerable<BoardGame> filteredGames = [];
+
+	protected override void OnInitialized() => ApplyFilter();
+
+	private void ApplyFilter()
 	{
-		get
-		{
-			if (string.IsNullOrWhiteSpace(nameFilter))
-				return games;
-
-			var filter = nameFilter.Trim();
-
-			if (int.TryParse(filter, out int players))
-			{
-				return games.Where(g =>
-					g.MinPlayers <= players && players <= g.MaxPlayers);
-			}
-
-			return games.Where(g =>
-				g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
-		}
+		filteredGames = gamesQuery.FilterGames(nameFilter).ToList();
 	}
 
-
-	protected override void OnInitialized()
-	{
-		games = gamesQuery.GetAllGames();
-
-	}
 
 	private void ShowRandomGame()
 	{
