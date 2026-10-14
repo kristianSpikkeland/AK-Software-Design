@@ -1,4 +1,5 @@
 using AK2.Components;
+using AK2.Components.Shared;
 using AK2.Data;
 using AK2.Dummy;
 
@@ -13,6 +14,8 @@ builder.Services.AddSingleton<GamesStorageAndQuery>();
 
 // Registers Dummy service
 builder.Services.AddScoped<DummyGames>();
+
+builder.Services.AddScoped<GameNightState>();
 
 var app = builder.Build();
 
