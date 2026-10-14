@@ -1,4 +1,4 @@
-﻿
+﻿@inject GameNightState GameNight
 
 <div class= "gameCard">
 	<h2>@BoardGame.Name</h2>
@@ -6,9 +6,14 @@
 	<p>Maksimum spillere: @BoardGame.MaxPlayers</p>
 	<p>Kategori: @BoardGame.Category</p>
 	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" />
+	<button @onclick="OnAddClicked">Legg til spillkveld</button>
 </div>
 
 @code {
 	[Parameter] public BoardGame? BoardGame { get; set; }
-	
+
+	[Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
+
+	private async Task OnAddClicked() => await OnAdd.InvokeAsync(BoardGame);
 }
+
