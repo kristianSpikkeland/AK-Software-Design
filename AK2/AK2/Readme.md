@@ -159,15 +159,78 @@ Derfor skriver du @bind-Value med stor V på dem:
 </EditForm>
 ````
 
+Prompt: Hvordan legger man en komponent oppe til høyre på en side?
+
+Svar: Det vanligste er å bruke CSS. Hvilken metode du velger avhenger av om komponenten skal følge med når man scroller.
+
+```CSS
+.gameNight-badge {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000; /* legger den over annet innhold */
+}
+```
+
+Prompt: Tenkte å ha en metode som jeg kaller HandleAdd på Games siden  som jeg kobler til en EventCallback metode som ligge i GameCard.  
+Foreløpig tenker jeg at den kun skal skrive ut en ekstra beskjed "spillet ble lagt til som skal være synlig i tre sekunder før den forsvinner. Hva er beste praksis?
+
+Svar (Utrdag) EventCallback er naturligvis ikke en metode men et parameter.
+
+Kjørte nye prompter der man ba om kodeeksempler.
+Fikk til svar at det fantes problemstillinger som at en bruker klikker hurtig på knapppen forlater siden og at man 
+kunne bruke cansellationToken. 
+
+Ønsket ingen voldsom løsning på tidspunktet. 
+
+Fikk til slutt denne koden som var det jeg ønsket meg:
+```
+@if (message is not null)
+{
+    <p>@message</p>
+}
+
+@code {
+    private string? message;
+
+    private async Task HandleAdd(BoardGame game)
+    {
+        message = "Spillet ble lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
+}
+```
+
+Hovedproblemet mitt var egentlig at jeg slet med hvordan man henter ut meldingen. Den første prompten burde adressert det bedre :)
+
+Prompt: Har et problem. Min onclick skal gjøre to ting på en gang. 
+Den skal kobles til metoden som sender signal til forelderen om at brukeren klikket og den skal samtidig oppdatere Count via Add metode som ligger i en GameNightState klasse. Svar veldig kort.
+
+Svar: Gjør begge deler i forelderens HandleAdd, ikke i kortet. Kortet sender bare signalet, og forelderen oppdaterer Count:
+```C#
+@inject GameNightState GameNight
+
+private async Task HandleAdd(BoardGame game)
+{
+    GameNight.Add();
+    message = "Spillet ble lagt til";
+    await Task.Delay(3000);
+    message = null;
+}
+```
 
 
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. For oppgave 1 viste det seg at jeg haddde laget fem parametre i GameCard istedenfor 
 å bare gi et BoardGame objekt. Programmet krasjet når jeg klikket på spill linkene etter at jeg implementerte endringen uten at jeg skjønte hvorfor.
 Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de gamle parameteren fra GameCard.
+Har fått KI til å lage noen emojier. 
 
 
 # Andre kilder
-Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset. 
+Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
+Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen.
+Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler.
 Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA
 https://www.tutorialspoint.com/article/how-to-select-a-random-element-from-a-chash-list
