@@ -1,9 +1,11 @@
 ﻿@page "/games";
 @inject Data.GamesStorageAndQuery gamesQuery;
+@inject GameNightState GameNight
 @rendermode InteractiveServer
 
 
 <h3>Brettspill</h3>
+<GameBadge />
 
 <div class="search-box">
 	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere"
@@ -17,8 +19,13 @@
 
 @foreach (var game in filteredGames)
 {
-	<GameCard BoardGame="game" @key="game.Id" />
+	<GameCard BoardGame="game" @key="game.Id" OnAdd="HandleAdd" />
 	<p><a href="/games/@game.Id">Detaljer</a></p>
+
+	@if (message is not null)
+	{
+		<p>@message</p>
+	}
 	<br />
 }
 
@@ -61,5 +68,15 @@
 		randomGame = gamesQuery.GetRandomGame();
 	}
 
-	
+
+	// Code to eunsure user that game was added
+	private string? message;
+
+    private async Task HandleAdd(BoardGame game)
+    {
+		GameNight.Add();
+        message = "Spillet ble lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
 }
