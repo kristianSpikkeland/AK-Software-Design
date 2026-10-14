@@ -36,3 +36,10 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.gameNight-badge {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000; 
+}
