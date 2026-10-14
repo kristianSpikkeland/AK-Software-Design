@@ -1,0 +1,11 @@
+﻿@inject GameNightState GameNight
+
+<span class ="gameNight-badge">@GameNight.Count</span>
+
+@code {
+	protected override void OnInitialized() => GameNight.OnChange += OnGameNightChanged;
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+}
