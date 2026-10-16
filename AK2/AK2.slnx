@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Vedlegg/">
+    <File Path="../../../../../Downloads/bUnit for nybegynnere.pdf" />
+    <File Path="../../../fra-blazor-server-til-interactive-auto-ren.md" />
+  </Folder>
   <Project Path="AK2/AK2.csproj" />
   <Project Path="AK2Test/AK2Test.csproj" Id="f433e342-1b51-4434-bc93-0d49af328c3c" />
 </Solution>
