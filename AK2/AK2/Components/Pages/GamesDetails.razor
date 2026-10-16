@@ -47,6 +47,11 @@ else
 	protected override void OnParametersSet()
 	{
 		game = gamesQuery.GetGameById(Id);
+		
+		if (game is null)
+        {
+            Nav.NotFound();
+        }
 	}
 
 	private void GoBack() => Nav.NavigateTo("/games");
