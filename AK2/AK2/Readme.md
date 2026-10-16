@@ -352,10 +352,112 @@ MainLayout.razor.css
 
 Videre ble jeg forklart at om en side ikke skal ha menyen kan man gi den en egen layout med @layout øverst på siden.
 
+Prompt: Har satt at bruker skriver inn i skjemaet et tall. Hvordan validere at det er mellom 1 og 6 og vise feilmelding om det er ugylidg verdi? 
+Tenkte å bruke OnValidSubmit og koble den til en Save metode.
+
+Svar: Ja, OnValidSubmit er riktig valg. Den kalles bare når alt er gyldig, så Save trenger ikke sjekke noe selv. Du trenger tre ting:
+
+1. Regelen på modellen;
+```C#
+using System.ComponentModel.DataAnnotations;
+
+public class BoardGame
+{
+    // ...
+    [Range(1, 6, ErrorMessage = "Terningkastet må være fra 1 til 6")]
+    public int Rating { get; set; }
+}
+```
+
+2. Skjemaet
+```C#
+<EditForm Model="game" OnValidSubmit="Save" FormName="game-form">
+    <DataAnnotationsValidator />
+
+    <label>
+        Terningkast
+        <InputNumber @bind-Value="game.Rating" />
+    </label>
+    <ValidationMessage For="() => game.Rating" />
+
+    <button type="submit">Lagre</button>
+</EditForm>
+
+@code {
+    private BoardGame game = new();
+
+    private async Task Save()
+    {
+        // Kommer du hit, er alle reglene oppfylt
+        await GameApi.CreateAsync(game);
+    }
+}
+```
+
+Stusset litt på hvorfor ikke ValidationSummary ble brukt.
+Fikk til svar: 
+<ValidationMessage For="..." /> viser feilene for ett felt, typisk rett under det feltet.
+<ValidationSummary /> viser alle feilene samlet i én liste.
+
+Prompt: bruker xUnit og tenkte å lage en test som sjekker navigasjon mellom sider. Kan man få til det eller må man bruke verktøy som eks. Playwright?
+
+Fikk beskjed om at det fantes noe som heter Bunit som vistnok er greit. 
+
+Ny prompt: Lag en veldig god Bunit manual som viser alle de mest brukte metodene for å teste nettsider. Kom med konkrete og utfyllende eksempler. 
+Ikke overkompliser, det skal være enkelt for en som aldri har brukt Bunit å komme igang. Ta utgangspunkt i et generelt tema og ikke oppgaveteksten min da jeg ønsker trening i å skrive det om til det oppgaven trenger.
+Gå inn å les oppgaveteksten slik at vi er sikre på at alt blir dekt og at jeg slipper å kjøre nye prompter siden jeg står fast.
+
+Svar se vedleggsmappen.
+
+## Oppgave 5
+### Manuell testlogg 
+#### Oppgave 2
+Testtilfelle: Åpne /games/ID
+Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
+Faktisk resultat: Som forventet
+
+Testtilfelle: Åpne /games/ID
+Steg: Bruker en ID som er bokstaver, for eksempel /games/abc
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
+Faktisk resultat: Som forventet
+
+Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall: 
+```C#
+@page "/games/{Id:int}"
+```
+
+Testtilfelle: Klikk terningkast 1 og 6 på spillsiden
+Steg: Kontroller at forelderen får riktig verdi
+Forventet resultat: Forelderen får riktig verdig
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroller DiceRating
+Steg: ReadOnly skal ikke reagerer på klikk
+Forventet resultat: Ingen melding vises  
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroll av DiceRating verdi 
+Steg: Send en verdi utenfor 1–6
+Forventet resultat: Feilmelding vises
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroll meny
+Steg: Markeringen i menyen følger side  
+Forventet resultat: Stemmer med siden man er på
+Faktisk resultat: Som forventet
+
+Testtilfelle:
+Steg: 
+Forventet resultat:
+Faktisk resultat:
+
+
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
 Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er feil. 
-Har fått KI til å lage noen emojier. 
+Har fått KI til å lage noen emojier.
+Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se vedleggsmappen etter fil med navn: fra-blazor-server-til-interactive-auto-ren.md.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
