@@ -137,6 +137,9 @@ Svar: Du skriver komponenten inne i @foreach på samme måte som vanlig HTML. De
 @key er valgfritt, men lurt i lister som endrer seg. Blazor bruker det til å holde styr på hvilket kort som hører til hvilket spill når listen filtreres. 
 Uten @key kan Blazor gjenbruke feil kort når elementer forsvinner, og da kan tilstand inne i kortet havne på feil spill. Bruk noe unikt, som Id.
 
+Det seg at jeg haddde laget fem parametre i GameCard istedenfor å bare gi et BoardGame objekt. Programmet krasjet når jeg klikket på spill linkene etter at jeg implementerte endringen uten at jeg skjønte hvorfor.
+Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de gamle parameteren fra GameCard.
+
 
 Noe hjelp med tester. Hadde en tanke om å ta en liste for filteret og en liste for alle spill og sammenligne innhold.
 Etter litt chatting fikk jeg beskjed om at det var et blindspor. Valgte heller å bruke assert.Empty();
@@ -220,13 +223,143 @@ private async Task HandleAdd(BoardGame game)
 }
 ```
 
+Prompt: Hvordan lager men en side som blir den som brukeren kommer til om en Id i URLen ikke finnes?
+
+Svar: Lag selve siden
+En helt vanlig side, for eksempel Pages/IkkeFunnet.razor:
+```C#
+@page "/ikke-funnet"
+
+<h2>Fant ikke det du lette etter</h2>
+<p>Spillet finnes ikke, eller adressen er feil.</p>
+<a href="/spillhylla">← Tilbake til spillhylla</a>
+```
+
+Fortell Routeren hvilken side som er “ikke funnet”-siden, i Routes.razor (eller App.razor):
+```C#
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.IkkeFunnet)">
+    ...
+</Router>
+```
+
+I spillsiden, når spillet ikke finnes:
+```C#
+@inject NavigationManager Nav
+
+@code {
+    protected override async Task OnParametersSetAsync()
+    {
+        game = await Games.GetByIdAsync(Id);
+        if (game is null)
+        {
+            Nav.NotFound();
+        }
+    }
+}
+```
+Opplevde at Til oversikt knappen min ikke funket på NotFound siden. Spurte KI og fikk til svar at jeg enten kunne gjøre siden interaktiv,
+men at det beste var om man la det som en lenke og bruker @onclick når knappen skal gjøre noe, som å legge til spillkveld.
+
+```C#<a href="/games" class="btn btn-primary">Til oversikt</a>
+```
+
+Skjønte ikke helt hva som menes med aktiv lenke og spurte KI om hva det var.
+Videre fikk man kodeeksempel for hvordan man kan lage NavLinker til meny og tilhørende css. Ønsket venstrejustering av menyen. Legger ved denne KI genererte koden:
+
+NavMenu.razor
+```C#
+<nav class="nav-menu">
+    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+        Forside
+    </NavLink>
+
+    <NavLink class="nav-link" href="Games">
+        Spillhylla
+    </NavLink>
+
+    <NavLink class="nav-link" href="game-night">
+        Min spillekveld 
+    </NavLink>
+</nav>
+```
+
+NavMenu.razor.css
+```C#
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+.nav-menu ::deep a {
+    color: #333;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.nav-menu ::deep a:hover {
+    background-color: #e9ecef;
+}
+
+.nav-menu ::deep a.active {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+}
+
+
+```
+
+Ny prompt der jeg spurte om hvordan jeg burde legge til NavMenuen for alle sider der den er aktuell.
+
+Fikk til svar at den kunne legges i MainLayout.razor og at alle sider vil få den som standard: 
+
+MainLayout.razor
+```C#
+@inherits LayoutComponentBase
+
+<div class="page">
+    <aside class="sidebar">
+        <NavMenu />
+    </aside>
+
+    <main class="content">
+        @Body
+    </main>
+</div>
+```
+
+MainLayout.razor.css
+```C#
+.page {
+    display: flex;          
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.content {
+    flex: 1;               
+    padding: 1.5rem;
+}
+```
+
+Videre ble jeg forklart at om en side ikke skal ha menyen kan man gi den en egen layout med @layout øverst på siden.
 
 ## Generell KI bruk
-Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. For oppgave 1 viste det seg at jeg haddde laget fem parametre i GameCard istedenfor 
-å bare gi et BoardGame objekt. Programmet krasjet når jeg klikket på spill linkene etter at jeg implementerte endringen uten at jeg skjønte hvorfor.
-Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de gamle parameteren fra GameCard.
+Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
+Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er feil. 
 Har fått KI til å lage noen emojier. 
 
+## KI refleksjoner
+Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
+* Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Ny prompt løste det.
 
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
