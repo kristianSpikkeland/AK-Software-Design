@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace AK2.Models
 {
@@ -11,6 +12,8 @@ namespace AK2.Models
         public int MaxPlayers { get; set; }
         public int PlayTimeMinutes { get; set; }
         public string Category { get; set; } = "";
+
+        [Range(1, 6, ErrorMessage = "Terningkastet må være fra 1 til 6")]
         public int Rating { get; set; } // dice roll, 1-6
         public string Description { get; set; } = "";
 

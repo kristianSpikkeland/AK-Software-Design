@@ -16,11 +16,16 @@
 
 	<DiceRating BoardGame="game" @key="game.Id" ReadOnly="false" />
 
-	<EditForm Model="@game" OnValidSubmit="Save">
+	<EditForm Model="@game" OnValidSubmit="Save" FormName="game-form">
+		<DataAnnotationsValidator />
 		<label>Ditt terningkast: </label><InputNumber @bind-Value="game.Rating" />
+		<ValidationMessage For="() => game.Rating" />
 		<button type="submit">Lagre vurdering</button>
 	</EditForm>
 	<br />
+
+
+	
 }
 
 else
@@ -58,6 +63,6 @@ else
 
 	public void Save()
 	{
-		
+		// await GameApi.CreateAsync(game);
 	}
 }
