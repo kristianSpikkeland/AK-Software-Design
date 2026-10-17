@@ -1,0 +1,8 @@
+.gameCard {
+    width: 100%; /* fyll plassen den får */
+    max-width: 400px; /* men ikke bli for bred på store skjermer */
+    box-sizing: border-box; /* padding og border regnes med i bredden */
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
