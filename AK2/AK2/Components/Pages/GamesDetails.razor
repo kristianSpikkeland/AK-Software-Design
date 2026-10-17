@@ -1,5 +1,6 @@
-﻿@inject Data.GamesStorageAndQuery gamesQuery
-@page "/games/{Id:int}"
+﻿@page "/games/{Id:int}"
+@inject Data.GamesStorageAndQuery gamesQuery
+@inject GameNightState GameNight
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
@@ -14,6 +15,17 @@
 	<p>Beskrivelse: @game.Description</p>
 	<br />
 
+	<GameNightButton Game="game"
+                     IsSelected="GameNight.Contains(game.Id)"
+                     OnAdd="HandleAdd"
+                     OnRemove="HandleRemove" />
+	
+	// Adding message to user if game was added to game night
+	@if (message is not null)
+    {
+        <p>@message</p>
+    }
+
 	<DiceRating BoardGame="game" @key="game.Id" ReadOnly="false" />
 
 	<EditForm Model="@game" OnValidSubmit="Save" FormName="game-form">
@@ -22,10 +34,7 @@
 		<ValidationMessage For="() => game.Rating" />
 		<button type="submit">Lagre vurdering</button>
 	</EditForm>
-	<br />
-
-
-	
+	<br />	
 }
 
 else
@@ -65,4 +74,18 @@ else
 	{
 		// await GameApi.CreateAsync(game);
 	}
+
+
+	
+	private string? message;
+
+	private async Task HandleAdd(BoardGame g)
+    {
+        message = GameNight.Add(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
+
+    private void HandleRemove(BoardGame g) => GameNight.Remove(g.Id);
+
 }
