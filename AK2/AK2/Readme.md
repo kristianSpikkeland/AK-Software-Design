@@ -623,6 +623,63 @@ public int Count => games.Count;
 Da kan Count++ og Count -- fjernes. Mer stabilt
 
 
+Slet med den justeringen etter om skjermen er liten og bred. Fikk beskjed av KI om at html koden i Games måtte pakkes i en div og gis klasse:
+```C#
+<div class="game-grid">
+    @foreach (var game in filteredGames)
+    {
+        <div class="game-cell" @key="game.Id">
+            <GameCard BoardGame="game"
+                      IsSelected="GameNight.Contains(game.Id)"
+                      OnAdd="HandleAdd"
+                      OnRemove="HandleRemove" />
+
+            @if (messages.TryGetValue(game.Id, out var msg))
+            {
+                <p>@msg</p>
+            }
+
+            <a href="/games/@game.Id">Detaljer</a>
+        </div>
+    }
+</div>
+```
+
+Og fikk tilhørende css av KI:
+```
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.game-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+```
+
+Fikk også css av KI for game card:
+```C#
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+    @foreach (var game in filteredGames)
+    {
+        <GameCard BoardGame="game" @key="game.Id"
+                  IsSelected="GameNight.Contains(game.Id)"
+                  OnAdd="HandleAdd" OnRemove="HandleRemove" />
+    }
+</div>
+```
+
+Prompt: Skjønner ikke. Vis spillhylla i ca. 375 px og minst 1200 px bredde, og legg skjermbilder i README.md. Når jeg prøver med de faste verdiene så endres det jo når jeg zoomer
+Svar: 
+Åpne spillhylla i Chrome eller Edge og trykk F12.
+Trykk Ctrl+Shift+M for å slå på device toolbar.
+Velg Responsive øverst og skriv inn bredden 375. Høyden kan for eksempel være 800.
+Ta skjermbilde: klikk på de tre prikkene i device toolbar og velg Capture screenshot. Vil du ha hele siden, velger du Capture full size screenshot.
+Gjenta med bredden 1280 (eller hvilken som helst bredde fra 1200 og oppover).
+
 Testtilfelle:
 Steg: 
 Forventet resultat:
@@ -634,6 +691,8 @@ Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode.
 Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er feil. 
 Har fått KI til å lage noen emojier.
 Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se vedleggsmappen etter fil med navn: fra-blazor-server-til-interactive-auto-ren.md.
+Brukt enkelte ganger for å forenkle egenskrevet kode. 
+Litt CSS spørsmål.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
