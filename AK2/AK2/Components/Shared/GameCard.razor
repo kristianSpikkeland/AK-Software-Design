@@ -6,7 +6,9 @@
 	<p>Maksimum spillere: @BoardGame.MaxPlayers</p>
 	<p>Kategori: @BoardGame.Category</p>
 	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" />
-	<button @onclick="OnAddClicked">Legg til spillkveld</button>
+
+	<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
+	
 </div>
 
 @code {
@@ -14,6 +16,8 @@
 
 	[Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
 
-	private async Task OnAddClicked() => await OnAdd.InvokeAsync(BoardGame);
+	[Parameter] public EventCallback<BoardGame> OnRemove { get; set; }
+
+	[Parameter] public bool IsSelected { get; set; }
 }
 
