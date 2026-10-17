@@ -162,18 +162,6 @@ Derfor skriver du @bind-Value med stor V på dem:
 </EditForm>
 ````
 
-Prompt: Hvordan legger man en komponent oppe til høyre på en side?
-
-Svar: Det vanligste er å bruke CSS. Hvilken metode du velger avhenger av om komponenten skal følge med når man scroller.
-
-```CSS
-.gameNight-badge {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 1000; /* legger den over annet innhold */
-}
-```
 
 Prompt: Tenkte å ha en metode som jeg kaller HandleAdd på Games siden  som jeg kobler til en EventCallback metode som ligge i GameCard.  
 Foreløpig tenker jeg at den kun skal skrive ut en ekstra beskjed "spillet ble lagt til som skal være synlig i tre sekunder før den forsvinner. Hva er beste praksis?
@@ -447,6 +435,194 @@ Steg: Markeringen i menyen følger side
 Forventet resultat: Stemmer med siden man er på
 Faktisk resultat: Som forventet
 
+Oppgave 3
+La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
+
+Prompt: Sliter med at melding blir vist for alle spill og ikke kun spillet det gjelder. Hva er beste praksis?
+
+Svar: Problemet er at du har én message-variabel for hele siden
+Beste praksis på sikt: la GameCard eie meldingen selv:
+
+GameCard.razor
+```C#
+@if (message is not null)
+    {
+        <p>@message</p>
+    }
+
+@code {
+
+    private async Task Add()
+    {
+        message = BoardGame.IsSelected
+            ? "Spillet er allerede lagt til"
+            : "Spillet ble lagt til";
+
+        await OnAdd.InvokeAsync(BoardGame);
+
+        await Task.Delay(3000);
+        message = null;
+    }
+```
+
+Da blir HandleAdd på foreldresiden bare selve logikken:
+
+```C#
+private void HandleAdd(BoardGame game)
+{
+    if (game.IsSelected) return;
+    game.IsSelected = true;
+    GameNight.Add(game);
+}
+```
+
+Det ante meg at dette ikke var i tråd med oppgavetekst. 
+Ny prompt: Oppfyller det kravet i oppgavetekst knyttet til foreldre barn rolle.
+
+Svar: Oppgave 2 sier at GameCard skal si fra via en EventCallback, at kortet ikke selv avgjør hva som skjer, og at det er forelderen som viser bekreftelsen. 
+I variant 2 leser kortet IsSelected og bestemmer selv om meldingen er «lagt til» eller «allerede lagt til». 
+Da tar barnet en beslutning som tilhører forelderen, og det bryter med «data ned, hendelser opp».
+Dette svaret var som forventet :)
+
+Videre fikk jeg forlart:
+Koden din lagrer valget som game.IsSelected på selve BoardGame-objektet. Det strider mot oppgave 3 på to måter:
+
+Spillekvelden skal ha ett hjem: GameNightState. Når «valgt» også ligger på spillet, har du to sannheter som kan komme ut av synk, for eksempel når du fjerner et spill fra spillekvelden.
+I oppgave 4 hentes spillene fra API-et. Da blir IsSelected enten nullstilt ved hver henting eller delt mellom alle brukere hvis API-et lagrer det.
+
+Spør heller tilstandsklassen, og send svaret ned til kortet som parameter:
+Langt svar. Jeg hentet mye kode fra svaret. Se vedleggmappen og PDF dokument GameNight-foreldre-barn.pdf
+
+Prompt: Tenker jeg skal lage en rød runding med svart tykk skrift som viser antall valgte spill til høyre i toppen av NavMenuen min. Hvordan gjør jeg det med html og css? Har laget en egen GameBadge.
+
+```CSS
+.gameNight-badge {
+    display: inline-flex;          /* sentrerer tallet */
+    align-items: center;
+    justify-content: center;
+
+    min-width: 1.75rem;            /* rund ved ett siffer */
+    height: 1.75rem;
+    padding: 0 0.4rem;             /* blir en «pille» ved to siffer */
+    border-radius: 999px;          /* helt rund */
+
+    background-color: #ff3b30;     /* rød */
+    color: #000;                   /* svart */
+    font-weight: 800;              /* tykk skrift */
+    font-size: 0.9rem;
+    line-height: 1;
+}
+```
+
+```html
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">AK2</a>
+        <GameBadge />
+    </div>
+</div>
+```
+
+Prompt: GameBadge blir oppdatert med nye tallverdier når den ligger på Games siden men ikke i NavMenyen.
+
+Svar: Løsning: gjør hele appen interaktiv (anbefalt)
+I Components/App.razor legger du til render-modus på Routes og HeadOutlet:
+```C#
+<HeadOutlet @rendermode="InteractiveServer" />
+...
+<Routes @rendermode="InteractiveServer" />
+```
+
+Hva er beste praksis for Blazor. Jeg skal ha legge til og fjern knapper på spilldetaljsiden også. 
+Bare kjøre duplisert kode eller injecte fra Games siden?
+
+Svar: Ingen av delene. Du kan ikke injecte en side i Blazor, bare tjenester. Logikken du ellers ville duplisert, ligger allerede i GameNightState. 
+Spilldetaljsiden skal derfor injecte tilstandsklassen, akkurat slik Games.razor gjør.
+
+Delt logikk: GameNightState
+Alt som handler om hva som er valgt, ligger på ett sted: Contains, Add og Remove. 
+Begge sidene kaller de samme metodene, så det blir ingen duplisert logikk. Denne gjenbruken er nettopp grunnen til at du har en tilstandsklasse.
+
+Delt UI: en liten knapp-komponent
+Selve knappene blir like på begge sidene. Det er derfor ryddig å trekke dem ut i en egen, «dum» komponent som bare viser og melder fra, i tråd med «data ned, hendelser opp»:
+
+```C#
+@* GameNightButton.razor *@
+@if (IsSelected)
+{
+    <button class="btn btn-outline-danger" @onclick="() => OnRemove.InvokeAsync(Game)">Fjern fra spillekveld</button>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="() => OnAdd.InvokeAsync(Game)">Legg til i spillekveld</button>
+}
+
+@code {
+    [Parameter, EditorRequired] public BoardGame Game { get; set; } = default!;
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnRemove { get; set; }
+}
+```
+
+Bruk den i GameCard i stedet for de to knappene du har der nå. Videresend parameterne fra kortet:
+```C#
+<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
+```
+
+Spilldetaljsiden blir forelderen
+```
+@page "/games/{Id:int}"
+@inject GameNightState GameNight
+
+@if (game is not null)
+{
+    <h1>@game.Name</h1>
+    @* ...detaljer... *@
+
+    <GameNightButton Game="game"
+                     IsSelected="GameNight.Contains(game.Id)"
+                     OnAdd="HandleAdd"
+                     OnRemove="HandleRemove" />
+
+    @if (message is not null)
+    {
+        <p>@message</p>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private BoardGame? game;
+    private string? message;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        game = /* hent spillet, f.eks. fra tjenesten/API-et */;
+    }
+
+    private async Task HandleAdd(BoardGame g)
+    {
+        message = GameNight.Add(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
+
+    private void HandleRemove(BoardGame g) => GameNight.Remove(g.Id);
+}
+```
+
+Videre fikk man et bra tips om å droppe:
+```C#
+public int Count { get; private set; }.
+```
+Og heller bruke:
+```C#
+public int Count => games.Count;
+```
+Da kan Count++ og Count -- fjernes. Mer stabilt
+
+
 Testtilfelle:
 Steg: 
 Forventet resultat:
@@ -461,7 +637,7 @@ Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se v
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
-* Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Ny prompt løste det.
+* Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
 
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
