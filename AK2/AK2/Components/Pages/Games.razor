@@ -16,20 +16,24 @@
 }
 
 
-@foreach (var game in filteredGames)
-{
-	<GameCard BoardGame="game" @key="game.Id" IsSelected="GameNight.Contains(game.Id)" OnAdd=" HandleAdd" OnRemove="HandleRemove" />
-
-	@if (messages.TryGetValue(game.Id, out var msg))
+<div class="game-grid">
+	@foreach (var game in filteredGames)
 	{
-		<p>@msg</p>
+		<div class="game-cell" @key="game.Id">
+			<GameCard BoardGame="game"
+					  IsSelected="GameNight.Contains(game.Id)"
+					  OnAdd="HandleAdd"
+					  OnRemove="HandleRemove" />
+
+			@if (messages.TryGetValue(game.Id, out var msg))
+			{
+				<p>@msg</p>
+			}
+
+			<a href="/games/@game.Id">Detaljer</a>
+		</div>
 	}
-
-	<p><a href="/games/@game.Id">Detaljer</a></p>
-
-	<br />
-}
-
+</div>
 
 
 <p>Antall treff: @filteredGames.Count()</p>
@@ -48,8 +52,6 @@
 @code {
 	private IEnumerable<BoardGame> games = [];
 	
-
-	[Parameter] public BoardGame? game { get; set; }
 	string nameFilter = string.Empty;
 
 	public BoardGame? randomGame;
