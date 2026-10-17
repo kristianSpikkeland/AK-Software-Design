@@ -5,7 +5,6 @@
 
 
 <h3>Brettspill</h3>
-<GameBadge />
 
 <div class="search-box">
 	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere"
@@ -19,13 +18,15 @@
 
 @foreach (var game in filteredGames)
 {
-	<GameCard BoardGame="game" @key="game.Id" OnAdd="HandleAdd" />
+	<GameCard BoardGame="game" @key="game.Id" IsSelected="GameNight.Contains(game.Id)" OnAdd=" HandleAdd" OnRemove="HandleRemove" />
+
+	@if (messages.TryGetValue(game.Id, out var msg))
+	{
+		<p>@msg</p>
+	}
+
 	<p><a href="/games/@game.Id">Detaljer</a></p>
 
-	@if (message is not null)
-	{
-		<p>@message</p>
-	}
 	<br />
 }
 
@@ -46,6 +47,8 @@
 
 @code {
 	private IEnumerable<BoardGame> games = [];
+	
+
 	[Parameter] public BoardGame? game { get; set; }
 	string nameFilter = string.Empty;
 
@@ -67,16 +70,18 @@
 	{
 		randomGame = gamesQuery.GetRandomGame();
 	}
+	
 
+	private readonly Dictionary<int, string> messages = new();
 
-	// Code to eunsure user that game was added
-	private string? message;
-
-    private async Task HandleAdd(BoardGame game)
-    {
-		GameNight.Add();
-        message = "Spillet ble lagt til";
-        await Task.Delay(3000);
-        message = null;
-    }
+	private async Task HandleAdd(BoardGame game)
+	{
+		messages[game.Id] = GameNight.Add(game)
+			? "Spillet ble lagt til"
+			: "Spillet er allerede lagt til";
+		await Task.Delay(3000);
+		messages.Remove(game.Id);
+	}
+	private void HandleRemove(BoardGame game) => GameNight.Remove(game.Id);
 }
+
