@@ -2,27 +2,22 @@
 @inject GameNightState GameNight
 
 <h1>Spillkveld</h1>
-
-@foreach (var game in chosenGames)
+<h3>Valgte spill: </h3>
+@foreach (var game in GameNight.Games)
 {
-	<p>Navn: @game.Name</p>
-	<p>Spilletid: @game.PlayTimeMinutes</p>
-	<br />
+	<p>@game.Name</p>
 }
 <br />
-<p>Antall treff: @chosenGames.Count()</p>
+
+<p>Total spilletid: @GameNight.TotalPlayTime</p>
+
+<br />
+<p>Antall treff: @GameNight.Games.Count()</p>
 <br />
 
 <p><a href="/">Til forside</a></p>	
 
 @code {
 	
-	IEnumerable<BoardGame> chosenGames = [];
-
-	protected override void OnInitialized() => ChosenFilter();
-
-	private void ChosenFilter()
-	{
-		chosenGames = GameNight.Games;
-	}
+	
 }
