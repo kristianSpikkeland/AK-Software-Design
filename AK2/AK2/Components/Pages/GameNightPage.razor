@@ -1,0 +1,28 @@
+﻿@page "/game-night";
+@inject GameNightState GameNight
+
+<h1>Spillkveld</h1>
+
+@foreach (var game in chosenGames)
+{
+	<p>Navn: @game.Name</p>
+	<p>Spilletid: @game.PlayTimeMinutes</p>
+	<br />
+}
+<br />
+<p>Antall treff: @chosenGames.Count()</p>
+<br />
+
+<p><a href="/">Til forside</a></p>	
+
+@code {
+	
+	IEnumerable<BoardGame> chosenGames = [];
+
+	protected override void OnInitialized() => ChosenFilter();
+
+	private void ChosenFilter()
+	{
+		chosenGames = GameNight.Games;
+	}
+}
