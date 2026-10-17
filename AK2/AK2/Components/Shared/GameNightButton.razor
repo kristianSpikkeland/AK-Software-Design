@@ -1,0 +1,16 @@
+﻿
+@if (IsSelected)
+{
+    <button class="btn btn-outline-danger" @onclick="() => OnRemove.InvokeAsync(Game)">Fjern fra spillekveld</button>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="() => OnAdd.InvokeAsync(Game)">Legg til i spillekveld</button>
+}
+
+@code {
+    [Parameter, EditorRequired] public BoardGame Game { get; set; } = default!;
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnRemove { get; set; }
+}
