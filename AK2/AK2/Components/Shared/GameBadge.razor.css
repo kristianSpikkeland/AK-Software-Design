@@ -1,0 +1,15 @@
+.gameNight-badge {
+    display: inline-flex; /* sentrerer tallet */
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem; /* rund ved ett siffer */
+    height: 1.75rem;
+    padding: 0 0.4rem; /* blir en «pille» ved to siffer */
+    border-radius: 999px; /* helt rund */
+
+    background-color: #ff3b30; /* rød */
+    color: #000; /* svart */
+    font-weight: 800; /* tykk skrift */
+    font-size: 0.9rem;
+    line-height: 1;
+}
