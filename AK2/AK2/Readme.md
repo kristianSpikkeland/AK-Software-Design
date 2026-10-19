@@ -399,7 +399,7 @@ Svar se vedleggsmappen.
 
 ## Oppgave 5
 ### Manuell testlogg 
-#### Oppgave 2
+#### For oppgave 2
 Testtilfelle: Åpne /games/ID
 Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
 Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
@@ -435,7 +435,7 @@ Steg: Markeringen i menyen følger side
 Forventet resultat: Stemmer med siden man er på
 Faktisk resultat: Som forventet
 
-Oppgave 3
+## Oppgave 3
 La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
 
 Prompt: Sliter med at melding blir vist for alle spill og ikke kun spillet det gjelder. Hva er beste praksis?
@@ -685,6 +685,12 @@ Steg:
 Forventet resultat:
 Faktisk resultat:
 
+### Lokal vs applikasjonstilstand
+Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
+Med lokal tilstand menes det som hører til en komponent. Et eksempel på lokal tilstand i min applikasjon er filteret i Games. Om jeg bytter fane og kommer tilbake til Games siden er filteret resettet.
+Et eksempel på visning av applikasjonstilstand er GameBadge. Denne overlever navigasjon mellom sidene uten at tallet blir resettet. Men det er GameNightState som har applikasjonstilstanden og dataen.  
+
+
 
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
@@ -693,6 +699,7 @@ Har fått KI til å lage noen emojier.
 Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se vedleggsmappen etter fil med navn: fra-blazor-server-til-interactive-auto-ren.md.
 Brukt enkelte ganger for å forenkle egenskrevet kode. 
 Litt CSS spørsmål.
+Litt spørsmål rundt teoridelen av oppgaven for å sikre at man har forstått konseptene skikkelig og får formulert ting faglig riktig.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
