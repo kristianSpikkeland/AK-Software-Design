@@ -685,13 +685,68 @@ Steg:
 Forventet resultat:
 Faktisk resultat:
 
-### Lokal vs applikasjonstilstand
+### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
 Med lokal tilstand menes det som hører til en komponent. Et eksempel på lokal tilstand i min applikasjon er filteret i Games. Om jeg bytter fane og kommer tilbake til Games siden er filteret resettet.
 Et eksempel på visning av applikasjonstilstand er GameBadge. Denne overlever navigasjon mellom sidene uten at tallet blir resettet. Men det er GameNightState som har applikasjonstilstanden og dataen.  
 
+Parametere og EventCallback funker ypperlig i barn foreldre forhold. Barnet definerer Parametre mens foreldre gir verdier ned til barnet som rapporterer tilbake med EventCallback. Foreldrene styrer hva som skjer.
+Et eksempel på det i egen applikasjon er GameNightButton knappen min som har EventCallback parametre OnAdd og OnRemove. Data sendes ned som verdier fra foreldrene Games og GamesDetails som har hver sin implementasjon av hva som skal skje. Knappen melder fra oppover når den trykkes.
 
+Kaskaderende verdier sender verdier nedover istedenfor oppover med EventCallback. Verdiene blir tilgjengelige for alle ledd under forelderen i motsetning til EventCallback som kun sender oppover et ledd.
+Jeg har brukt det noe i forbindelse med tidligere prosjekt for å sende informasjon om hvem som er innlogget:
+```C#
+AddCascadingAuthenticationState()
+```
 
+Tilstandstjenester registreres for klasser som skal holde på en tilstand i en gitt periode. Slike klasser kan være injected (dependency injection) for at klasser eller sider kan bruke dem.
+Et eksempel fra egen applikasjon er GamesStorageAndQuery. Levetiden er satt til Singleton som vil si at tilstanden eksisterer så lenge programmet kjører. Spillene kommer til å være delt for alle brukere av appen. 
+
+Et annet og kanskje bedre eksempel på tilstandstjeneste er GameNightState som bare skal overleve spillkvelden. Denne har fått scoped som tilstand som gjør at hver spiller får en unik spillkveld.
+Det er derimot verdt å vite at tilstanden er tapt om bruker refresher siden. Syntes det ble litt for dumt og spurte derfor Claude om hjelp. Etter litt drøftinger ble man klokere på hvordan man kunne gå frem.
+
+Prompt: Ønsker at du lager en PDF som viser ombyggingen til ProtectedLocalStorage. Videre må jeg ha en knapp som resetter spillkvelden. Kjørte en ny prompt der jeg fikk lagt til farger for endringene.
+Svar: Se i vedleggsmappen etter Spillekvled protectedlocalstorage 
+
+Ny prompt, lastet opp prosjektet mitt til Claude:
+Nå funker ikke den bekreftelsen om at spillkveld er lagt til så bra. Noen ganger henger den og kommer etterhvert som man klikker på andre spill mens noen ganger kommer den ikke i det hele tatt.
+
+Svar: Jeg fant årsaken. Det er en sideeffekt av at AddAsync ble asynkron.
+Meldingen blir derfor aldri vist, med mindre noe annet får siden til å tegnes i løpet av de 3 sekundene, for eksempel at du klikker på et annet spill. Det er nøyaktig det du ser.
+
+Løsningen
+Be Blazor tegne på nytt med en gang meldingen er satt, med StateHasChanged():
+
+Games.Razor
+```C#
+private async Task HandleAdd(BoardGame game)
+{
+    var text = await GameNight.AddAsync(game)
+        ? "Spillet ble lagt til"
+        : "Spillet er allerede lagt til";
+
+    messages[game.Id] = text;
+    StateHasChanged();               // ← vis meldingen nå
+
+    await Task.Delay(3000);
+
+    // Fjern bare hvis det fortsatt er denne meldingen
+    if (messages.TryGetValue(game.Id, out var current) && current == text)
+        messages.Remove(game.Id);
+}
+```
+
+GamesDetails.razor
+```C#
+private async Task HandleAdd(BoardGame g)
+{
+    message = await GameNight.AddAsync(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+    StateHasChanged();               // ← vis meldingen nå
+
+    await Task.Delay(3000);
+    message = null;
+}
+```
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
 Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er feil. 
