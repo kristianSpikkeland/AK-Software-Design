@@ -3,6 +3,7 @@
 @inject GameNightState GameNight
 @inject NavigationManager Nav
 @rendermode InteractiveServer
+@implements IDisposable
 
 @if (game is not null)
 {
@@ -20,7 +21,7 @@
                      OnAdd="HandleAdd"
                      OnRemove="HandleRemove" />
 	
-	// Adding message to user if game was added to game night
+	@* Adding message to user if game was added to game night*@
 	@if (message is not null)
     {
         <p>@message</p>
@@ -53,19 +54,18 @@ else
 
 
 	protected override void OnInitialized()
-	{
-		games = gamesQuery.GetAllGames();
+	=> GameNight.OnChange += OnGameNightChanged;
 
-	}
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
 	protected override void OnParametersSet()
 	{
 		game = gamesQuery.GetGameById(Id);
-		
+
 		if (game is null)
-        {
-            Nav.NotFound();
-        }
+		{
+			Nav.NotFound();
+		}
 	}
 
 	private void GoBack() => Nav.NavigateTo("/games");
@@ -76,16 +76,20 @@ else
 	}
 
 
-	
+
 	private string? message;
 
 	private async Task HandleAdd(BoardGame g)
-    {
-        message = GameNight.Add(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
-        await Task.Delay(3000);
-        message = null;
-    }
+	{
+		message = await GameNight.AddAsync(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+		StateHasChanged();
 
-    private void HandleRemove(BoardGame g) => GameNight.Remove(g.Id);
+		await Task.Delay(3000);
+		message = null;
+	}
+
+	private async Task HandleRemove(BoardGame g) => GameNight.RemoveAsync(g.Id);
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
 
 }

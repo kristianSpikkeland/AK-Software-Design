@@ -1,5 +1,6 @@
 ﻿@page "/game-night";
 @inject GameNightState GameNight
+@implements IDisposable
 
 <h1>Spillkveld</h1>
 <h3>Valgte spill: </h3>
@@ -15,9 +16,40 @@
 <p>Antall treff: @GameNight.Games.Count()</p>
 <br />
 
+@if (confirmReset)
+{
+	<p>Er du sikker på at spillkveld skal nullstilles? All lagret informasjon går tapt.</p>
+	<button class="btn btn-danger" @onclick="ResetGameNight">Ja, nullstill</button>
+	<button class="btn btn-secondary" @onclick="() => confirmReset = false">Avbryt</button>
+}
+
+else
+{
+	<button class="btn btn-outline-danger"
+        disabled="@(GameNight.Count == 0)"
+        @onclick="() => confirmReset = true">
+    Nullstill spillkvelden
+	</button>
+}
+
 <p><a href="/">Til forside</a></p>	
 
 @code {
-	
-	
+	private bool confirmReset;
+
+	protected override void OnInitialized() => GameNight.OnChange += OnGameNightChanged;
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
+	private async Task ResetGameNight()
+	{
+		await GameNight.ClearAsync();
+		confirmReset = false;
+	}
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+
 }
+	
+	
+

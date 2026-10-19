@@ -2,12 +2,14 @@
 @inject Data.GamesStorageAndQuery gamesQuery;
 @inject GameNightState GameNight
 @rendermode InteractiveServer
+@implements IDisposable
+
 
 
 <h3>Brettspill</h3>
 
 <div class="search-box">
-	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere"
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere />"
 </div>
 
 @if(filteredGames.Count() < 1)
@@ -51,7 +53,7 @@
 
 @code {
 	private IEnumerable<BoardGame> games = [];
-	
+
 	string nameFilter = string.Empty;
 
 	public BoardGame? randomGame;
@@ -60,7 +62,13 @@
 	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
 	IEnumerable<BoardGame> filteredGames = [];
 
-	protected override void OnInitialized() => ApplyFilter();
+	protected override void OnInitialized()
+	{
+		ApplyFilter();
+		GameNight.OnChange += OnGameNightChanged;
+	}
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
 	private void ApplyFilter()
 	{
@@ -72,18 +80,28 @@
 	{
 		randomGame = gamesQuery.GetRandomGame();
 	}
-	
+
 
 	private readonly Dictionary<int, string> messages = new();
 
 	private async Task HandleAdd(BoardGame game)
 	{
-		messages[game.Id] = GameNight.Add(game)
-			? "Spillet ble lagt til"
-			: "Spillet er allerede lagt til";
+		var text = await GameNight.AddAsync(game)
+		? "Spillet ble lagt til"
+		: "Spillet er allerede lagt til";
+
+		messages[game.Id] = text;
+		StateHasChanged();               // ← vis meldingen nå
+
 		await Task.Delay(3000);
-		messages.Remove(game.Id);
+
+		// Fjern bare hvis det fortsatt er denne meldingen
+		if (messages.TryGetValue(game.Id, out var current) && current == text)
+			messages.Remove(game.Id);
+	
 	}
-	private void HandleRemove(BoardGame game) => GameNight.Remove(game.Id);
+	private async Task HandleRemove(BoardGame game) => await GameNight.RemoveAsync(game.Id);
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
 }
 

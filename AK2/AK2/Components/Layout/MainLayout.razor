@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject GameNightState GameNight
 
 <div class="page">
     <aside class="sidebar">
@@ -9,3 +10,13 @@
         @Body
     </main>
 </div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GameNight.LoadAsync();
+        }
+    }
+}
