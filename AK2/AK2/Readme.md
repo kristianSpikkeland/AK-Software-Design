@@ -387,53 +387,6 @@ Fikk til svar:
 <ValidationMessage For="..." /> viser feilene for ett felt, typisk rett under det feltet.
 <ValidationSummary /> viser alle feilene samlet i én liste.
 
-Prompt: bruker xUnit og tenkte å lage en test som sjekker navigasjon mellom sider. Kan man få til det eller må man bruke verktøy som eks. Playwright?
-
-Fikk beskjed om at det fantes noe som heter Bunit som vistnok er greit. 
-
-Ny prompt: Lag en veldig god Bunit manual som viser alle de mest brukte metodene for å teste nettsider. Kom med konkrete og utfyllende eksempler. 
-Ikke overkompliser, det skal være enkelt for en som aldri har brukt Bunit å komme igang. Ta utgangspunkt i et generelt tema og ikke oppgaveteksten min da jeg ønsker trening i å skrive det om til det oppgaven trenger.
-Gå inn å les oppgaveteksten slik at vi er sikre på at alt blir dekt og at jeg slipper å kjøre nye prompter siden jeg står fast.
-
-Svar se vedleggsmappen.
-
-## Oppgave 5
-### Manuell testlogg 
-#### For oppgave 2
-Testtilfelle: Åpne /games/ID
-Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
-Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
-Faktisk resultat: Som forventet
-
-Testtilfelle: Åpne /games/ID
-Steg: Bruker en ID som er bokstaver, for eksempel /games/abc
-Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
-Faktisk resultat: Som forventet
-
-Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall: 
-```C#
-@page "/games/{Id:int}"
-```
-
-Testtilfelle: Klikk terningkast 1 og 6 på spillsiden
-Steg: Kontroller at forelderen får riktig verdi
-Forventet resultat: Forelderen får riktig verdig
-Faktisk resultat: Som forventet
-
-Testtilfelle: Kontroller DiceRating
-Steg: ReadOnly skal ikke reagerer på klikk
-Forventet resultat: Ingen melding vises  
-Faktisk resultat: Som forventet
-
-Testtilfelle: Kontroll av DiceRating verdi 
-Steg: Send en verdi utenfor 1–6
-Forventet resultat: Feilmelding vises
-Faktisk resultat: Som forventet
-
-Testtilfelle: Kontroll meny
-Steg: Markeringen i menyen følger side  
-Forventet resultat: Stemmer med siden man er på
-Faktisk resultat: Som forventet
 
 ## Oppgave 3
 La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
@@ -680,10 +633,9 @@ Velg Responsive øverst og skriv inn bredden 375. Høyden kan for eksempel være
 Ta skjermbilde: klikk på de tre prikkene i device toolbar og velg Capture screenshot. Vil du ha hele siden, velger du Capture full size screenshot.
 Gjenta med bredden 1280 (eller hvilken som helst bredde fra 1200 og oppover).
 
-Testtilfelle:
-Steg: 
-Forventet resultat:
-Faktisk resultat:
+Begynte med en enkel variant for start og slutt av spill. Fikk forklart en del rundt Stopwatch. Men med alle funksjonene jeg ønsket meg ble det til slutt en del kode.
+Jeg ønsket en knapp for å starte spill og en for å avslutte spill. Videre ønsket jeg en teller som fortsatte å telle om bruker forlater siden.
+For AI dokumentasjon av dette se: Tidtaking_spillkveld
 
 ### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
@@ -699,8 +651,9 @@ Jeg har brukt det noe i forbindelse med tidligere prosjekt for å sende informas
 AddCascadingAuthenticationState()
 ```
 
-Tilstandstjenester registreres for klasser som skal holde på en tilstand i en gitt periode. Slike klasser kan være injected (dependency injection) for at klasser eller sider kan bruke dem.
-Et eksempel fra egen applikasjon er GamesStorageAndQuery. Levetiden er satt til Singleton som vil si at tilstanden eksisterer så lenge programmet kjører. Spillene kommer til å være delt for alle brukere av appen. 
+Tilstandstjenester registreres for klasser som skal holde på en tilstand i en gitt periode. Det er gunstig å bruke slike om flere komponenter skal bruke samme tjenesten. Slike klasser kan være injected (dependency injection) for at klasser eller sider kan bruke dem.
+Et eksempel fra egen applikasjon er GamesStorageAndQuery. Levetiden er satt til Singleton som vil si at tilstanden eksisterer så lenge programmet kjører. Spillene kommer til å være delt for alle brukere av appen.
+Mens selve spillkvelden er unik for hver bruker. Så to brukere vil ikke dele samme spillkveld med mindre dem bruker samme maskin.
 
 Et annet og kanskje bedre eksempel på tilstandstjeneste er GameNightState som bare skal overleve spillkvelden. Denne har fått scoped som tilstand som gjør at hver spiller får en unik spillkveld.
 Det er derimot verdt å vite at tilstanden er tapt om bruker refresher siden. Syntes det ble litt for dumt og spurte derfor Claude om hjelp. Etter litt drøftinger ble man klokere på hvordan man kunne gå frem.
@@ -747,6 +700,71 @@ private async Task HandleAdd(BoardGame g)
     message = null;
 }
 ```
+
+Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og endringene i en fane blir oppdatert i de andre når siden refreshes.
+
+
+
+## Oppgave 5
+### Manuell testlogg 
+#### For oppgave 2
+Testtilfelle: Åpne /games/ID
+Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
+Faktisk resultat: Som forventet
+
+Testtilfelle: Åpne /games/ID
+Steg: Bruker en ID som er bokstaver, for eksempel /games/abc
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
+Faktisk resultat: Som forventet
+
+Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall: 
+```C#
+@page "/games/{Id:int}"
+```
+
+Testtilfelle: Klikk terningkast 1 og 6 på spillsiden
+Steg: Kontroller at forelderen får riktig verdi
+Forventet resultat: Forelderen får riktig verdig
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroller DiceRating
+Steg: ReadOnly skal ikke reagerer på klikk
+Forventet resultat: Ingen melding vises  
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroll av DiceRating verdi 
+Steg: Send en verdi utenfor 1–6
+Forventet resultat: Feilmelding vises
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kontroll meny
+Steg: Markeringen i menyen følger side  
+Forventet resultat: Stemmer med siden man er på
+Faktisk resultat: Som forventet
+
+#### For oppgave 3
+Testtilfelle: Legg til et spill fra spillhylla
+Steg: kontroller at tallet i menyen øker.
+Forventet resultat: GameBadge øker
+Faktisk resultat: Som forventet
+
+Testtilfelle: Gå til en spillside og tilbak
+Steg:  Kontroller at spillkvelden er uendret
+Forventet resultat: Spillkvelden har ikke mistet sin tilstand
+Faktisk resultat: Som forventet
+
+Testtilfelle: Legg til spill
+Steg: Forsøk å legge til samme spill to ganger 
+Forventet resultat: Man har kun tilgang til å fjerne (ikke legge til) spill som allerede er lagt til
+Faktisk resultat: Som forventet
+
+Testtilfelle: 
+Steg: 
+Forventet resultat: 
+Faktisk resultat: 
+
+
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
 Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er feil. 
@@ -759,7 +777,7 @@ Litt spørsmål rundt teoridelen av oppgaven for å sikre at man har forstått k
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
 * Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
-
+ 
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
 Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen.
