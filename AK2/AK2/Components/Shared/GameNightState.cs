@@ -11,8 +11,9 @@ namespace AK2.Components.Shared
 
         private readonly List<BoardGame> games = new();
         public IReadOnlyList<BoardGame> Games => games;
-        public int TotalPlayTime => games.Sum(g => g.PlayTimeMinutes);
 
+        public BoardGame? GetGameById(int id) =>
+            games.FirstOrDefault(g => g.Id == id);
 
         // The bell
         public event Action? OnChange;
@@ -96,6 +97,31 @@ namespace AK2.Components.Shared
 
         #endregion
 
+        public async Task StartAsync(int gameId)
+        {
+            var game = GetGameById(gameId);
+            if (game is null || game.StartedAt is not null) return; // går allerede
+            game.StartedAt = DateTime.UtcNow;
+            await SaveAsync();
+            OnChange?.Invoke();
+        }
+        public async Task StopAsync(int gameId)
+        {
+            var game = GetGameById(gameId);
+            if (game?.StartedAt is null) return; // går ikke
+            game.PlayTime += DateTime.UtcNow - game.StartedAt.Value;
+            game.StartedAt = null;
+            await SaveAsync();
+            OnChange?.Invoke();
+        }
+        public TimeSpan GetLiveTime(BoardGame game) =>
+            game.StartedAt is null
+                ? game.PlayTime
+                : game.PlayTime + (DateTime.UtcNow - game.StartedAt.Value);
 
+        public TimeSpan TotalPlayTime =>
+            games.Aggregate(TimeSpan.Zero, (sum, g) => sum + GetLiveTime(g));
     }
+
+
 }

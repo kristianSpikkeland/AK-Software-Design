@@ -7,10 +7,12 @@
 @foreach (var game in GameNight.Games)
 {
 	<p>@game.Name</p>
+	<StartStopGame GameId="game.Id" OnGameEnded="StateHasChanged" />
+	<p>@game.PlayTime.ToString(@"hh\:mm\:ss")</p> 
 }
 <br />
 
-<p>Total spilletid: @GameNight.TotalPlayTime</p>
+<p>Total spilletid: @GameNight.TotalPlayTime.ToString(@"hh\:mm\:ss")</p>
 
 <br />
 <p>Antall treff: @GameNight.Games.Count()</p>
@@ -35,21 +37,40 @@ else
 <p><a href="/">Til forside</a></p>	
 
 @code {
-	private bool confirmReset;
+    private bool confirmReset;
+    private PeriodicTimer? timer;
 
-	protected override void OnInitialized() => GameNight.OnChange += OnGameNightChanged;
+    protected override void OnInitialized()
+    {
+        GameNight.OnChange += OnGameNightChanged;
+        _ = RunTimerAsync();
+    }
 
-	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+    private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
-	private async Task ResetGameNight()
-	{
-		await GameNight.ClearAsync();
-		confirmReset = false;
-	}
+    private async Task RunTimerAsync()
+    {
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
-	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+        while (await timer.WaitForNextTickAsync())
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
+    private async Task ResetGameNight()
+    {
+        await GameNight.ClearAsync();
+        confirmReset = false;
+    }
+
+    public void Dispose()
+    {
+        GameNight.OnChange -= OnGameNightChanged;
+        timer?.Dispose();
+    }
 }
+
 	
 	
 

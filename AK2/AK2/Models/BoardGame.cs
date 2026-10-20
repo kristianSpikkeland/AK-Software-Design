@@ -7,10 +7,11 @@ namespace AK2.Models
     {
         private static int _nextId = 1;
         public int Id { get; set; }
+        public DateTime? StartedAt { get; set; }
         public string Name { get; set; } = "";
         public int MinPlayers { get; set; }
         public int MaxPlayers { get; set; }
-        public int PlayTimeMinutes { get; set; }
+        public TimeSpan PlayTime { get; set; }
         public string Category { get; set; } = "";
 
         [Range(1, 6, ErrorMessage = "Terningkastet må være fra 1 til 6")]

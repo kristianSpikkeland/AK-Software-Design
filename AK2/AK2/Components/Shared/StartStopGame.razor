@@ -1,0 +1,47 @@
+﻿@inject GameNightState GameNight
+@implements IDisposable
+
+<p>@LiveTime.ToString(@"hh\:mm\:ss")</p>
+<button class="btn btn-outline-danger"
+        @onclick="() => StartGame(GameId)">
+    Start spill
+</button>
+<button class="btn btn-primary"
+        @onclick="() => EndGame(GameId)">
+    Slutt spill
+</button>
+@code {
+    [Parameter] public int GameId { get; set; }
+    [Parameter] public EventCallback OnGameEnded { get; set; }
+    private PeriodicTimer? timer;
+    private TimeSpan LiveTime
+    {
+        get
+        {
+            var game = GameNight.GetGameById(GameId);
+            return game is null ? TimeSpan.Zero : GameNight.GetLiveTime(game);
+        }
+    }
+    protected override void OnInitialized()
+    {
+        _ = RunTimerAsync();
+    }
+    private async Task RunTimerAsync()
+    {
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await timer.WaitForNextTickAsync())
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    public async Task StartGame(int id)
+    {
+        await GameNight.StartAsync(id);
+    }
+    public async Task EndGame(int id)
+    {
+        await GameNight.StopAsync(id);
+        await OnGameEnded.InvokeAsync();
+    }
+    public void Dispose() => timer?.Dispose();
+}
