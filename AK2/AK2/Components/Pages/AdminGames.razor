@@ -1,0 +1,136 @@
+﻿@page "/admin/games"
+@inject GameApiClient ApiClient
+
+
+
+<h3>AdminGames</h3>
+
+@if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+
+<EditForm
+	Model="NewGame"
+	OnValidSubmit = "Create">
+
+	<DataAnnotationsValidator />
+    <ValidationSummary />
+
+	<label>
+        Navn:
+        <InputText
+            @bind-Value="NewGame.Name" />
+    </label>
+
+    <label>
+        Kategori:
+        <InputText
+            @bind-Value="NewGame.Category" />
+    </label>
+
+	<label>
+        Minimum spillere:
+        <InputNumber
+            @bind-Value="NewGame.MinPlayers"
+            step="1" />
+    </label>
+
+	<label>
+        Maksimum spillere:
+        <InputNumber
+            @bind-Value="NewGame.MaxPlayers"
+            step="1" />
+    </label>
+
+	<button type="submit">
+        Legg til
+    </button>
+
+
+</EditForm>
+@code {
+	private IReadOnlyList<GameDTO>? games;
+	private int id;
+	private string? error { get; set; }
+
+	private UpdateCategoryRequest EditedModel { get; set; } = new();
+	private CreateGameRequest NewGame { get; set; } = new();
+
+	private async Task LoadGames()
+	{
+		try
+		{
+			games =
+				await ApiClient.GetGamesAsync();
+
+			error = null;
+		}
+		catch
+		{
+			error = "Kunne ikke hente spill";
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadGames();
+	}
+
+	private async Task Create()
+	{
+		try
+		{
+			await ApiClient.CreateGameAsync(NewGame);
+
+			// Resets user window
+			NewGame = new CreateGameRequest();
+
+			// Reloads the games
+			await LoadGames();
+		}
+
+		catch
+		{
+			error = "Kunne ikke opprette spillet";
+		}
+
+
+	}
+
+
+	private async Task Update()
+	{
+		try
+		{
+			await ApiClient.UpdateCategoryAsync(EditedModel);
+
+			// Resets user window
+			EditedModel = new UpdateCategoryRequest();
+
+			// Relods the games
+			await LoadGames();
+		}
+
+		catch
+		{
+			error = "Kunne ikke oppdatere kategori";
+		}
+	}
+
+	private async Task Delete()
+	{
+		try
+		{
+			await ApiClient.DeleteGameAsync(id);
+
+			// Relods the games
+			await LoadGames();
+		}
+		catch
+		{
+			error = "Sletting av spill feilet";
+		}
+	}
+
+}
