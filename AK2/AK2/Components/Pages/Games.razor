@@ -76,9 +76,9 @@
 	}
 
 
-	private void ShowRandomGame()
+	private async Task ShowRandomGame()
 	{
-		randomGame = gamesQuery.GetRandomGame();
+		randomGame = await gamesQuery.GetRandomGameAsync();
 	}
 
 
