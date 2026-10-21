@@ -58,9 +58,9 @@ else
 
 	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
-	protected override void OnParametersSet()
+	protected override async Task OnParametersSetAsync()
 	{
-		game = gamesQuery.GetGameById(Id);
+		game = await gamesQuery.GetGameByIdAsync(Id);
 
 		if (game is null)
 		{
