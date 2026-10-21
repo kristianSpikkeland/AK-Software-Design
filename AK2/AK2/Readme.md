@@ -723,46 +723,63 @@ Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall:
 @page "/games/{Id:int}"
 ```
 
-Testtilfelle: Klikk terningkast 1 og 6 på spillsiden
-Steg: Kontroller at forelderen får riktig verdi
-Forventet resultat: Forelderen får riktig verdig
+Testtilfelle: Klikk terningkast 1 og 6 på spillsiden\
+Steg: Kontroller at forelderen får riktig verdi\
+Forventet resultat: Forelderen får riktig verdig\
 Faktisk resultat: Som forventet
 
-Testtilfelle: Kontroller DiceRating
-Steg: ReadOnly skal ikke reagerer på klikk
-Forventet resultat: Ingen melding vises  
+Testtilfelle: Kontroller DiceRating\
+Steg: ReadOnly skal ikke reagerer på klikk\
+Forventet resultat: Ingen melding vises\ 
 Faktisk resultat: Som forventet
 
-Testtilfelle: Kontroll av DiceRating verdi 
-Steg: Send en verdi utenfor 1–6
-Forventet resultat: Feilmelding vises
+Testtilfelle: Kontroll av DiceRating verdi\ 
+Steg: Send en verdi utenfor 1–6\
+Forventet resultat: Feilmelding vises\
 Faktisk resultat: Som forventet
 
-Testtilfelle: Kontroll meny
-Steg: Markeringen i menyen følger side  
-Forventet resultat: Stemmer med siden man er på
+Testtilfelle: Kontroll meny\
+Steg: Markeringen i menyen følger side\ 
+Forventet resultat: Stemmer med siden man er på\
 Faktisk resultat: Som forventet
 
 #### For oppgave 3
-Testtilfelle: Legg til et spill fra spillhylla
-Steg: kontroller at tallet i menyen øker.
-Forventet resultat: GameBadge øker
+Testtilfelle: Legg til et spill fra spillhylla\
+Steg: kontroller at tallet i menyen øker\
+Forventet resultat: GameBadge øker\
 Faktisk resultat: Som forventet
 
-Testtilfelle: Gå til en spillside og tilbak
-Steg:  Kontroller at spillkvelden er uendret
-Forventet resultat: Spillkvelden har ikke mistet sin tilstand
+Testtilfelle: Gå til en spillside og tilbake\
+Steg:  Kontroller at spillkvelden er uendret\
+Forventet resultat: Spillkvelden har ikke mistet sin tilstand\
 Faktisk resultat: Som forventet
 
-Testtilfelle: Legg til spill
-Steg: Forsøk å legge til samme spill to ganger 
-Forventet resultat: Man har kun tilgang til å fjerne (ikke legge til) spill som allerede er lagt til
+Testtilfelle: Legg til spill\
+Steg: Forsøk å legge til samme spill to ganger\ 
+Forventet resultat: Man har kun tilgang til å fjerne (ikke legge til) spill som allerede er lagt til\
 Faktisk resultat: Som forventet
+
+Testtilfelle: Fjern det siste spille\
+Steg: Kontroller at siden viser en tom-tilstand\
+Forventet resultat: Samlet spilletid blir 0\
+Faktisk resultat: Som forventet
+
+Testtilfelle: Samlet spilletid\
+Steg: Kontroller samlet spilletid med minst tre spill\
+Forventet resultat: Alle spill teller oppover. Total spilletid teller også live\
+Faktisk resultat: Som forventet
+
+Testtilfelle: Dokumenter om spillekvelden deles mellom faner\
+Steg: Åpne appen i to faner\
+Forventet resultat: Scoped GameNightState gir hver fane sin egen kopi av spillekvelden. Spillekvelden lagres i localStorage, som deles mellom faner, slik at alle faner viser samme spillekveld. Fikk hjelp av AI for formulering.\
+Faktisk resultat: Som forventet. Endringer i en fane må refreshes
+
 
 Testtilfelle: 
 Steg: 
 Forventet resultat: 
-Faktisk resultat: 
+Faktisk resultat 
+
 
 
 ## Generell KI bruk
@@ -784,3 +801,14 @@ Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye.
 Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler.
 Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA
 https://www.tutorialspoint.com/article/how-to-select-a-random-element-from-a-chash-list
+
+## Bilder
+Testtilfelle: Spillhylle i forskjellige breder.
+Steg: Tok skjermbilder av forskjellige skjermbredde
+Forventet resultat: Spillhylla kan brukes på både smal skjerm (mobil) og bred skjerm.
+
+### Faktisk resultat 375 px: 
+![Spillhylla på 375 px](Bilder/375px.png)
+
+### Faktisk resultat 1200 px:
+![Spillhylla på 1200 px](Bilder/1200px.png)
