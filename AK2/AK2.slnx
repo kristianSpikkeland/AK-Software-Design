@@ -1,14 +1,4 @@
 <Solution>
-  <Folder Name="/Bilder/">
-    <File Path="../../../../../Downloads/1200px.png" />
-    <File Path="../../../../../Downloads/375px.png" />
-  </Folder>
-  <Folder Name="/Vedlegg/">
-    <File Path="../../../../../Downloads/GameNight-foreldre-barn.pdf" />
-    <File Path="../../../../../Downloads/Spillekveld-ProtectedLocalStorage-v2.pdf" />
-    <File Path="../../../../../Downloads/Tidtaking_spillkveld.pdf" />
-    <File Path="../../../fra-blazor-server-til-interactive-auto-ren.md" />
-  </Folder>
   <Project Path="AK2/AK2.csproj" />
   <Project Path="AK2Test/AK2Test.csproj" Id="f433e342-1b51-4434-bc93-0d49af328c3c" />
 </Solution>
