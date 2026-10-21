@@ -703,6 +703,77 @@ private async Task HandleAdd(BoardGame g)
 
 Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og endringene i en fane blir oppdatert i de andre når siden refreshes.
 
+### Oppgave 4
+Angret stort på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
+Da er det enklere å demonstrere faktisk bruk av APIer istedenfor den løsningne jeg startet på der alt ligger på server siden.
+En annen fordel med webassembly er at spillkvelden kan kjøres uten internett tilgang. 
+Ulempen med WebAssembly er at det tar litt tid første gang man starter siden mye skal lastes ned i nettleseren.
+Det er derfor Microsoft har lagt til en Auto variant som først kjører på serveren til deretter å bytte til klientsiden når alt er lastet ned og klart. 
+Da slipper brukeren å vente og føle at brukergrensesnittet ikke responderer.
+
+Fikk laget en KI instruks for ombygging til WebAssembly, men tok en vurdering av at det ble for omfattende. Nettleserlagringen måtte blant annet bli bygd om. Har prøvd en gang tidligere å bygge om, men det ble ingen suksess.
+Kunne ha startet et nytt prosjekt på riktig måte og kopiert over, men da ville mye av git historikken gått tapt. 
+
+For ryddighetens skyld laget jeg en mappe med navn Client der klient kode skal ligge. 
+
+ServerGamesService er en klasse som funker som et Service lag mellom dataen min og klienten.
+Vi vil unngå at datakilden får ugyldige data. Det er derfor lagt til validering her i tillegg til på client siden. Data på klientsiden kan manipuleres. Derfor er det viktig at serversiden også har validering. 
+Sensitive data skal aldri plasseres på klientsiden. 
+Selvom koden og API kallene blir noe konstruert i dette tilfellet vil API allikevell kunne retteferdigjøres om man tenker at det skal snakke med flere klienter. 
+
+Gjorde GamesStorageAndQuery metodene mine asynkrone. Det er vanlig praksis når man snakker med database. Etter litt diskusjoner med KI så fant man ut at hensikten med å gjøre det for listen er liten.
+I verste fall blir programmet tregere. Men valgte å stå for den asynkrone varianten da man kan lage et interface og bytte ut listelagringen med en database senere.
+
+For API delen av oppgaven skrev man det mest av koden selv. Vedlegget: fra-blazor-server-til-interactive-auto-ren.md har vært en god hjelp under denne delen av oppgaven.
+Men fikk litt hjelp med implementering av sletting: 
+
+```
+public Task<bool> DeleteGameAsync(int id)
+{
+    var removed = boardGames.RemoveAll(g => g.Id == id) > 0;
+    return Task.FromResult(removed);
+}
+```
+
+```C#
+public async Task<bool> DeleteGameAsync(int id)
+{
+    var response = await http.DeleteAsync($"api/games/{id}");
+
+    if (response.StatusCode == HttpStatusCode.NotFound)
+        return false;
+
+    response.EnsureSuccessStatusCode();
+    return true;
+}
+```
+
+
+```C#
+// Deletes a game
+gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =>
+{
+    var deleted = await gamesService.DeleteGameAsync(id);
+
+    return deleted ? Results.NoContent() : Results.NotFound();
+});
+```
+Videre fikk man litt hjelp med å sette opp HttpClienten
+
+```C#
+builder.Services.AddHttpClient<GameApiClient>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
+```
+
+Legg adressen i appsettings.json:
+```json
+{
+  "ApiBaseUrl": "https://localhost:7259/",
+  "Logging": { ... }
+}
+```
+
+Ellers en del hjelp med feilmeldinger,
 
 
 ## Oppgave 5
