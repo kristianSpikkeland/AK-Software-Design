@@ -7,22 +7,48 @@ namespace AK2.Data
     {
         public List<BoardGame> boardGames { get; set; } = new();
 
-        public List<BoardGame> GetAllGames()
+        public async Task<List<BoardGame>> GetAllGamesAsync()
         {
             return boardGames;
         }
 
-        public void CreateGame(string name, int minPlayers, int maxPlayers, string category)
+        // Create
+        public async Task CreateGameAsync(string name, int minPlayers, int maxPlayers, string category)
         {
             boardGames.Add(new BoardGame(name, minPlayers, maxPlayers, category));
         }
 
-        public IEnumerable<BoardGame> GetBoardGameByName(string boardGame)
+        // Read by name
+        public async Task<BoardGame?> GetGameByNameAsync(string name)
         {
-            return boardGames.Where(b => b.Name == boardGame);
+            return boardGames.FirstOrDefault(b => b.Name == name);
         }
 
-        public BoardGame? GetRandomGame()
+        // Read by Id
+        public async Task<BoardGame?> GetGameByIdAsync(int id)
+        {
+            var games = await GetAllGamesAsync();
+            return games.FirstOrDefault(g => g.Id == id);
+        }
+           
+
+        // Update category   
+        public async Task UpdateCategoryAsync(string name, string category)
+        {
+            var game = await GetGameByNameAsync(name);
+            game.Category = category;
+        }
+
+        // Delete by ud
+        public Task<bool> DeleteGameAsync(int id)
+        {
+            var removed = boardGames.RemoveAll(g => g.Id == id) > 0;
+            return Task.FromResult(removed);
+        }
+
+
+
+        public async Task <BoardGame?> GetRandomGameAsync()
         {
             if (boardGames.Count == 0)
                 return null;
@@ -31,8 +57,7 @@ namespace AK2.Data
             return boardGames[index];
         }
 
-        public BoardGame? GetGameById(int id) =>
-            GetAllGames().FirstOrDefault(g => g.Id == id);
+        
 
 
         public IEnumerable<BoardGame> FilterGames(string nameFilter)
