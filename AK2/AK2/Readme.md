@@ -723,56 +723,56 @@ Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall:
 @page "/games/{Id:int}"
 ```
 
-Testtilfelle: Klikk terningkast 1 og 6 på spillsiden\
-Steg: Kontroller at forelderen får riktig verdi\
-Forventet resultat: Forelderen får riktig verdig\
+Testtilfelle: Klikk terningkast 1 og 6 på spillsiden <br>
+Steg: Kontroller at forelderen får riktig verdi <br>
+Forventet resultat: Forelderen får riktig verdig <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Kontroller DiceRating\
-Steg: ReadOnly skal ikke reagerer på klikk\
-Forventet resultat: Ingen melding vises\ 
+Testtilfelle: Kontroller DiceRating <br>
+Steg: ReadOnly skal ikke reagerer på klikk <br>
+Forventet resultat: Ingen melding vises <br>
+Faktisk resultat: Som forventet 
+
+Testtilfelle: Kontroll av DiceRating verdi <br> 
+Steg: Send en verdi utenfor 1–6 <br>
+Forventet resultat: Feilmelding vises <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Kontroll av DiceRating verdi\ 
-Steg: Send en verdi utenfor 1–6\
-Forventet resultat: Feilmelding vises\
-Faktisk resultat: Som forventet
-
-Testtilfelle: Kontroll meny\
-Steg: Markeringen i menyen følger side\ 
-Forventet resultat: Stemmer med siden man er på\
+Testtilfelle: Kontroll meny <br>
+Steg: Markeringen i menyen følger side <br> 
+Forventet resultat: Stemmer med siden man er på <br>
 Faktisk resultat: Som forventet
 
 #### For oppgave 3
-Testtilfelle: Legg til et spill fra spillhylla\
-Steg: kontroller at tallet i menyen øker\
-Forventet resultat: GameBadge øker\
+Testtilfelle: Legg til et spill fra spillhylla <br>
+Steg: kontroller at tallet i menyen øker <br>
+Forventet resultat: GameBadge øker <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Gå til en spillside og tilbake\
-Steg:  Kontroller at spillkvelden er uendret\
-Forventet resultat: Spillkvelden har ikke mistet sin tilstand\
+Testtilfelle: Gå til en spillside og tilbake <br>
+Steg:  Kontroller at spillkvelden er uendret <br>
+Forventet resultat: Spillkvelden har ikke mistet sin tilstand <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Legg til spill\
-Steg: Forsøk å legge til samme spill to ganger\ 
-Forventet resultat: Man har kun tilgang til å fjerne (ikke legge til) spill som allerede er lagt til\
+Testtilfelle: Legg til spill <br>
+Steg: Forsøk å legge til samme spill to ganger <br> 
+Forventet resultat: Man har kun tilgang til å fjerne (ikke legge til) spill som allerede er lagt til <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Fjern det siste spille\
-Steg: Kontroller at siden viser en tom-tilstand\
-Forventet resultat: Samlet spilletid blir 0\
+Testtilfelle: Fjern det siste spille <br>
+Steg: Kontroller at siden viser en tom-tilstand <br>
+Forventet resultat: Samlet spilletid blir 0 <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Samlet spilletid\
-Steg: Kontroller samlet spilletid med minst tre spill\
-Forventet resultat: Alle spill teller oppover. Total spilletid teller også live\
+Testtilfelle: Samlet spilletid <br>
+Steg: Kontroller samlet spilletid med minst tre spill <br>
+Forventet resultat: Alle spill teller oppover. Total spilletid teller også live <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Dokumenter om spillekvelden deles mellom faner\
-Steg: Åpne appen i to faner\
-Forventet resultat: Scoped GameNightState gir hver fane sin egen kopi av spillekvelden. Spillekvelden lagres i localStorage, som deles mellom faner, slik at alle faner viser samme spillekveld. Fikk hjelp av AI for formulering.\
-Faktisk resultat: Som forventet. Endringer i en fane må refreshes
+Testtilfelle: Dokumenter om spillekvelden deles mellom faner <br>
+Steg: Åpne appen i to faner <br>
+Forventet resultat: Scoped GameNightState gir hver fane sin egen kopi av spillekvelden. Spillekvelden lagres i localStorage, som deles mellom faner, slik at alle faner viser samme spillekveld. Fikk hjelp av AI for formulering. <br>
+Faktisk resultat: Som forventet. Endringer i en fane må refreshes 
 
 
 Testtilfelle: 
