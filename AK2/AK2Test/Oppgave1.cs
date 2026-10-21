@@ -22,7 +22,7 @@ namespace AK2Test
             // Act
             _dummy.CreateDummyGames();
             var filter = _query.FilterGames("q");
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.Empty(filter);
@@ -34,7 +34,7 @@ namespace AK2Test
             // Act
             _dummy.CreateDummyGames();
             var monopolFilter = _query.FilterGames("Monopol");
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.NotEmpty(monopolFilter);
@@ -47,7 +47,7 @@ namespace AK2Test
             // Act
             _dummy.CreateDummyGames();
             var monopolFilter = _query.FilterGames("Monopol");
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.Equal(1, monopolFilter.Count());
@@ -64,7 +64,7 @@ namespace AK2Test
             // Act
             _dummy.CreateDummyGames();
             var filter = _query.FilterGames(value);
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.NotEmpty(filter);
@@ -82,7 +82,7 @@ namespace AK2Test
 
             var filter = _query.FilterGames(value);
 
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.NotEmpty(filter);
@@ -99,7 +99,7 @@ namespace AK2Test
 
             var filter = _query.FilterGames(value);
 
-            var games = _query.GetAllGames();
+            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.Empty(filter);
