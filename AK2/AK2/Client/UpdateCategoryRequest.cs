@@ -8,8 +8,5 @@ namespace AK2.Client
         [Required(ErrorMessage = "Kategori må fylles ut")]
         public string Category { get; set; }
 
-
-        [Required(ErrorMessage = "Navn må fylles ut")]
-        public string Name { get; set; }
     }
 }
