@@ -841,14 +841,106 @@ Velger å ikke gå tilbake på DTO designvalget da det er verdifull kunnskap å 
 
 ### Teoridel oppgave 4
 #### Livssyklusmetode spillhylle
-Som livssyklusmetode for spillhyllen valgte jeg OnInitialized. 
-Dette er en fordel om administrator har lagt til flere spill, så vil disse komme med i oversikten om bruker navigerer tilbake til siden.
+Som livssyklusmetode for spillhyllen valgte jeg OnInitializedAsync.
+Dette er en fordel siden om administrator har lagt til flere spill, så vil disse komme med i oversikten om bruker navigerer tilbake til siden.
+Dette er siden det lages en ny instans av spillhylla. Den gamle instansen blir fjernet når man går bort fra siden. 
+Spillhylla bruker ikke parametre fra url for å velge hva som vises. Derfor passer OnInitializedAsync bra.
+
+
+Selve koden ser slik ut etter at APIet har blitt implementert:
+
+```
+
+	protected override async Task OnInitializedAsync()
+	{
+		GameNight.OnChange += OnGameNightChanged;
+		try
+		{
+			games = await ApiClient.GetGamesAsync();
+			ApplyFilter();
+		}
+
+		catch (HttpRequestException)
+		{
+        error = "Kunne ikke hente spillene. Prøv igjen senere.";
+		}
+
+		finally
+		{
+        isLoading = false;
+		}			
+	}
+```
 
 Inne i OnInitialized metoden ligger:
 ```C#
 GameNight.OnChange += OnGameNightChanged 
 ```
-Den kodelinjen sørger for at informasjon om spillkvelden blir oppdatert live. 
+Den kodelinjen sørger for at informasjon om spillkvelden blir oppdatert live om endringer skjer for spillkvelden. 
+
+
+Når adressen endres på spillsiden så blir innholdet byttet ut med OnParametesSetAsync. Navnet forklarer egentlig hva denne livssyklusen gjør. 
+Når verdien for Id endrer seg skal oversiken endres. Hvis man går inn og ut av siden lages det faktisk også en ny instans av komponenten. 
+
+```C#
+	protected override async Task OnParametersSetAsync()
+	{
+		isLoading = true;
+		error = null;
+		game = null;
+
+		try
+		{
+			game = await ApiClient.GetGameByIdAsync(Id);
+
+			if (game is null)
+			{
+				Nav.NotFound();
+			}
+		}
+
+		catch (HttpRequestException)
+		{
+			error = "Kunne ikke hente spillet. Prøv igjen senere.";
+		}
+
+		finally
+		{
+			isLoading = false;
+		}
+	}
+```
+
+Man kunne ha laget en side for hvert spill, men da skalerer koden dårlig. OnParametersSetAsync gjør at innhold oppdaters nå komponenten gjenbrukes.
+Hadde vi brukt OnInitializedAsync ville ikke metoden kjørt på nytt om Id endret seg.
+Siden vi gjenbruker komponenten må error, isLoadding og game settes tilbake i metodene. Hvis ikke vil de gamle verdien henge igjen.
+Det er koden under som fakisk gjør at vi kan bytte id i urlen. Men det er OnParametersSetAsync som faktisk bytter innholdet som vises på skjermen.
+```C#
+@page "/games/{Id:int}"
+```
+
+Parameteret ligger i koden slik:
+```C#
+[Parameter] public int Id { get; set; }
+```
+
+Fikk en kodelinje av Claude for å sjekke om APIet ble kalt to ganger
+
+```
+Console.WriteLine($"Games.OnInitializedAsync kjører. Renderer: {RendererInfo.Name}, interaktiv: {RendererInfo.IsInteractive}");
+```
+
+Den ble kalt to ganger når spillhylla ble refreshet men bare en gang når jeg gikk via hovedmeny.
+
+Slik formulert Claude grunnen:
+Ved F5 lager serveren først en statisk versjon av siden for å sende ferdig HTML raskt, og kaster den etterpå.
+Deretter kobler nettleseren seg til, og serveren lager en ny, interaktiv versjon. 
+Det er to instanser, så OnInitializedAsync kjører to ganger
+Via menyen er appen allerede tilkoblet. Blazor bytter side uten ny innlasting, så det blir bare én interaktiv instans og ett kall.
+
+Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunne se dataen selvom siden ikke er interaktiv enda.
+
+Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
 
 ## Oppgave 5
 ### Manuell testlogg 
@@ -919,6 +1011,7 @@ Steg: Åpne appen i to faner <br>
 Forventet resultat: Scoped GameNightState gir hver fane sin egen kopi av spillekvelden. Spillekvelden lagres i localStorage, som deles mellom faner, slik at alle faner viser samme spillekveld. Fikk hjelp av AI for formulering. <br>
 Faktisk resultat: Som forventet. Endringer i en fane må refreshes 
 
+Se slutten av dokumentet for skjermbilder av spillhylla i forskjellige bredder.
 
 Testtilfelle: 
 Steg: 
