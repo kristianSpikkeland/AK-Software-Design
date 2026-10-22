@@ -1,56 +1,74 @@
 ﻿@page "/admin/games"
 @inject GameApiClient ApiClient
 
-
-
 <h3>AdminGames</h3>
 
-@if (error is not null)
-{
-    <p style="color:red">@error</p>
-}
-
-<EditForm
-	Model="NewGame"
-	OnValidSubmit = "Create">
+@* Creates a new game *@
+<EditForm Model="NewGame" OnValidSubmit = "Create">
 
 	<DataAnnotationsValidator />
     <ValidationSummary />
+	
+	<label>Navn: <InputText @bind-Value="NewGame.Name" /></label>
 
-	<label>
-        Navn:
-        <InputText
-            @bind-Value="NewGame.Name" />
-    </label>
+    <label>Kategori: <InputText @bind-Value="NewGame.Category" /></label>
 
-    <label>
-        Kategori:
-        <InputText
-            @bind-Value="NewGame.Category" />
-    </label>
+	<label>Minimum spillere: <InputNumber @bind-Value="NewGame.MinPlayers" step="1" /></label>
 
-	<label>
-        Minimum spillere:
-        <InputNumber
-            @bind-Value="NewGame.MinPlayers"
-            step="1" />
-    </label>
+	<label>Maksimum spillere <InputNumber @bind-Value="NewGame.MaxPlayers" step="1" /></label>
 
-	<label>
-        Maksimum spillere:
-        <InputNumber
-            @bind-Value="NewGame.MaxPlayers"
-            step="1" />
-    </label>
-
-	<button type="submit">
-        Legg til
-    </button>
-
-
+	<button type="submit">Legg til</button>
 </EditForm>
+<br />
+<br />
+
+@* Shows the games *@
+@if (error is not null)
+{
+	<p style="color:red">@error</p>
+}
+
+@if (games is null)
+{
+	<p>Laster...</p>
+}
+
+else
+{
+	<table border="1" cellpadding="8">
+		<thead>
+			<tr>
+				<th>Id</th>
+				<th>Navn</th>
+				<th>Minimum spillere</th>
+				<th>Maksimum spillere</th>
+				<th>Kategori</th>
+				<th>Ny kategori</th>
+				<th>Lagre ny kategori</th>
+				<th>Slett</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach (var game in games)
+			{
+				<tr>
+					<td>@game.Id</td>
+					<td>@game.Name</td>
+					<td>@game.MinPlayers</td>
+					<td>@game.MaxPlayers</td>
+					<td>@game.Category</td>
+					<td><input value="@GetNewCategory(game.Id)" @oninput="e => newCategories[game.Id] = e.Value?.ToString() ?? string.Empty" /></td>
+					<td><button @onclick="() => Update(game.Id)">Lagre</button></td>
+					<td><button @onclick="() => Delete(game.Id)">Slett</button></td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
 @code {
-	private IReadOnlyList<GameDTO>? games;
+	private IReadOnlyList<BoardGame>? games;
 	private int id;
 	private string? error { get; set; }
 
@@ -66,9 +84,9 @@
 
 			error = null;
 		}
-		catch
+		catch 
 		{
-			error = "Kunne ikke hente spill";
+			error = $"Kunne ikke hente spill: ";
 		}
 	}
 
@@ -99,26 +117,7 @@
 	}
 
 
-	private async Task Update()
-	{
-		try
-		{
-			await ApiClient.UpdateCategoryAsync(EditedModel);
-
-			// Resets user window
-			EditedModel = new UpdateCategoryRequest();
-
-			// Relods the games
-			await LoadGames();
-		}
-
-		catch
-		{
-			error = "Kunne ikke oppdatere kategori";
-		}
-	}
-
-	private async Task Delete()
+	private async Task Delete(int id)
 	{
 		try
 		{
@@ -130,6 +129,47 @@
 		catch
 		{
 			error = "Sletting av spill feilet";
+		}
+	}
+
+
+
+
+	private readonly Dictionary<int, string> newCategories = new();
+
+	private string GetNewCategory(int id) =>
+	newCategories.TryGetValue(id, out var category) ? category : string.Empty;
+
+	private async Task Update(int id)
+	{
+		var category = GetNewCategory(id);
+
+		if (string.IsNullOrWhiteSpace(category))
+		{
+			error = "Kategori må fylles ut";
+			return;
+		}
+
+		try
+		{
+			var updated = await ApiClient.UpdateCategoryAsync(id, new UpdateCategoryRequest { Category = category });
+
+			// Clears the input field for this row
+			newCategories.Remove(id);
+
+			// Relods the games
+			await LoadGames();
+
+			// Set after LoadGames, which clears error
+			if (!updated)
+			{
+				error = "Spillet finnes ikke lenger";
+			}
+		}
+
+		catch
+		{
+			error = "Kunne ikke oppdatere kategori";
 		}
 	}
 
