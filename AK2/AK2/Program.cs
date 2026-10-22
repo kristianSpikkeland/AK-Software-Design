@@ -76,13 +76,21 @@ gamesApi.MapGet("", async (ServerGamesService gameService) =>
 });
 
 
+gamesApi.MapGet("{id:int}", async (int id, ServerGamesService gameService) =>
+{
+    var game = await gameService.GetGameByIdAsync(id);
+    return game is null ? Results.NotFound() : Results.Ok(game);
+});
+
 // Updates game category
-gamesApi.MapPut("", async (UpdateCategoryRequest request, ServerGamesService gamesService) =>
+// Updates game category
+gamesApi.MapPut("{id:int}", async (int id, ServerGamesService gamesService, UpdateCategoryRequest request) =>
 {
     try
     {
-        await gamesService.UpdateCategoryAsync(request);
-        return Results.NoContent();
+        var updated = await gamesService.UpdateCategoryAsync(id, request);
+
+        return updated ? Results.NoContent() : Results.NotFound();
     }
 
     catch (ArgumentException exception)
@@ -93,6 +101,7 @@ gamesApi.MapPut("", async (UpdateCategoryRequest request, ServerGamesService gam
         });
     }
 });
+
 
 gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =>
 {
