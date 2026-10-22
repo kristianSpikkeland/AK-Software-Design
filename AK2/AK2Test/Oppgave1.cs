@@ -2,6 +2,7 @@
 using AK2.Data;
 using AK2.Dummy;
 using AK2.Models;
+using AK2.Filtering;
 
 namespace AK2Test
 {
@@ -10,31 +11,45 @@ namespace AK2Test
         private readonly GamesStorageAndQuery _query;
         private readonly DummyGames _dummy;
 
+
         public Oppgave1()
         {
             _query = new GamesStorageAndQuery();
             _dummy = new DummyGames(_query);
         }
 
+
+        // Creates the dummy games and returns them as a list
+        private async Task<List<BoardGame>> GetDummyGamesAsync()
+        {
+            await _dummy.CreateDummyGames();
+            return await _query.GetAllGamesAsync();
+        }
+
         [Fact]
-        public void FilterGames_WhenNoMatchOnName_ShouldReturnEmpty()
-        {      
+        public async Task FilterGames_WhenNoMatchOnName_ShouldReturnEmpty()
+        {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
             // Act
-            _dummy.CreateDummyGames();
-            var filter = _query.FilterGames("q");
-            var games = _query.GetAllGamesAsync();
+            var filter = GameFilter.FilterGames("q", games);
+            
 
             // Assert
             Assert.Empty(filter);
         }
 
         [Fact]
-        public void FilterGames_WhenMatcOnName_ShouldNotReturnEmpty()
+        public async Task FilterGames_WhenMatcOnName_ShouldNotReturnEmpty()
         {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
+
             // Act
-            _dummy.CreateDummyGames();
-            var monopolFilter = _query.FilterGames("Monopol");
-            var games = _query.GetAllGamesAsync();
+            var monopolFilter = GameFilter.FilterGames("Monopol", games);
+
 
             // Assert
             Assert.NotEmpty(monopolFilter);
@@ -42,12 +57,14 @@ namespace AK2Test
 
 
         [Fact]
-        public void FilterGames_WhenMatcOnName_ShoulReturnRightAmount()
+        public async Task FilterGames_WhenMatcOnName_ShoulReturnRightAmount()
         {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
             // Act
-            _dummy.CreateDummyGames();
-            var monopolFilter = _query.FilterGames("Monopol");
-            var games = _query.GetAllGamesAsync();
+            var monopolFilter = GameFilter.FilterGames("Monopol", games);
+
 
             // Assert
             Assert.Equal(1, monopolFilter.Count());
@@ -59,12 +76,13 @@ namespace AK2Test
         [InlineData("mOnOpOl")]
         [InlineData("RISK")]
         [InlineData("settlers")]
-        public void FilterGames_WhenMixInUpperAndLowerCase_ShouldNotCare(string value)
+        public async Task FilterGames_WhenMixInUpperAndLowerCase_ShouldNotCare(string value)
         {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
             // Act
-            _dummy.CreateDummyGames();
-            var filter = _query.FilterGames(value);
-            var games = _query.GetAllGamesAsync();
+            var filter = GameFilter.FilterGames(value, games);
 
             // Assert
             Assert.NotEmpty(filter);
@@ -75,14 +93,15 @@ namespace AK2Test
         [InlineData("3")]
         [InlineData("4")]
         [InlineData("5")]
-        public void FilterGames_WhenMatchOnNumberOfPlayers_ShouldNotReturnEmpty(string value)
+        public async Task FilterGames_WhenMatchOnNumberOfPlayers_ShouldNotReturnEmpty(string value)
         {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
             // Act
-            _dummy.CreateDummyGames();
 
-            var filter = _query.FilterGames(value);
+            var filter = GameFilter.FilterGames(value, games);
 
-            var games = _query.GetAllGamesAsync();
 
             // Assert
             Assert.NotEmpty(filter);
@@ -92,14 +111,13 @@ namespace AK2Test
         [Theory]
         [InlineData("0")]
         [InlineData("100")]
-        public void FilterGames_WhenNoMatchOnNumberOfPlayers_ShouldReturnEmpty(string value)
+        public async Task FilterGames_WhenNoMatchOnNumberOfPlayers_ShouldReturnEmpty(string value)
         {
+            // Arrange
+            var games = await GetDummyGamesAsync();
+
             // Act
-            _dummy.CreateDummyGames();
-
-            var filter = _query.FilterGames(value);
-
-            var games = _query.GetAllGamesAsync();
+            var filter = GameFilter.FilterGames(value, games);
 
             // Assert
             Assert.Empty(filter);
