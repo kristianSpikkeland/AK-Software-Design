@@ -9,7 +9,7 @@ namespace AK2.Dummy
         {
 
             await gamesQuery.CreateGameAsync("Monopol", 2, 6, "Economics");
-            await gamesQuery.CreateGameAsync("Den forsvunnede diament", 2, 5, "Adventure");
+            await gamesQuery.CreateGameAsync("Den forsvunnede diamant", 2, 5, "Adventure");
             await gamesQuery.CreateGameAsync("Settlers", 2, 8, "Adventure");
             await gamesQuery.CreateGameAsync("Risk", 2, 6, "Adventure");
             await gamesQuery.CreateGameAsync("Exploding kittens", 2, 5, "Logic");
