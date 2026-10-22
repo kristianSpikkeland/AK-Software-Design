@@ -13,7 +13,10 @@ namespace AK2.Dummy
             await gamesQuery.CreateGameAsync("Settlers", 2, 8, "Adventure");
             await gamesQuery.CreateGameAsync("Risk", 2, 6, "Adventure");
             await gamesQuery.CreateGameAsync("Exploding kittens", 2, 5, "Logic");
-            
+            await gamesQuery.CreateGameAsync("Lars Monsen spillet", 2, 8, "Adventure");
+            await gamesQuery.CreateGameAsync("Catch the fire", 2, 10, "Stress");
+            await gamesQuery.CreateGameAsync("Who are you", 2, 6, "Identity");
+
         }
     }
 }
