@@ -1,5 +1,5 @@
 ﻿@page "/games";
-@inject Data.GamesStorageAndQuery gamesQuery;
+@inject GameApiClient ApiClient
 @inject GameNightState GameNight
 @rendermode InteractiveServer
 @implements IDisposable
@@ -9,14 +9,26 @@
 <h3>Brettspill</h3>
 
 <div class="search-box">
-	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere />"
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere" />
 </div>
 
-@if(filteredGames.Count() < 1)
-{
-	<p style="color:red">Ingen treff</p>	
-}
 
+@if (isLoading)
+{
+    <p>Laster spill...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+else if (!games.Any())
+{
+    <p>Det finnes ingen spill i samlingen.</p>
+}
+else if (!filteredGames.Any())
+{
+    <p style="color:red">Ingen treff</p>
+}
 
 <div class="game-grid">
 	@foreach (var game in filteredGames)
@@ -50,9 +62,10 @@
 
 
 
-
 @code {
-	private IEnumerable<BoardGame> games = [];
+	private IReadOnlyList<BoardGame> games = [];
+	private bool isLoading = true;
+	private string? error;
 
 	string nameFilter = string.Empty;
 
@@ -62,23 +75,37 @@
 	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
 	IEnumerable<BoardGame> filteredGames = [];
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
-		ApplyFilter();
 		GameNight.OnChange += OnGameNightChanged;
+		try
+		{
+			games = await ApiClient.GetGamesAsync();
+			ApplyFilter();
+		}
+
+		catch (HttpRequestException)
+		{
+        error = "Kunne ikke hente spillene. Prøv igjen senere.";
+		}
+
+		finally
+		{
+        isLoading = false;
+		}			
 	}
 
 	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
 	private void ApplyFilter()
 	{
-		filteredGames = gamesQuery.FilterGames(nameFilter).ToList();
+		filteredGames = GameFilter.FilterGames(nameFilter, games).ToList();
 	}
 
 
 	private async Task ShowRandomGame()
 	{
-		randomGame = await gamesQuery.GetRandomGameAsync();
+		randomGame = GameFilter.GetRandomGame(games);
 	}
 
 
