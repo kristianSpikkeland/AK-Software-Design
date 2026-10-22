@@ -1,11 +1,20 @@
 ﻿@page "/games/{Id:int}"
-@inject Data.GamesStorageAndQuery gamesQuery
+@inject GameApiClient ApiClient
 @inject GameNightState GameNight
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 @implements IDisposable
 
-@if (game is not null)
+@if (isLoading)
+{
+    <p>Laster spill...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+
+else if (game is not null)
 {
 	<h1>Detaljer</h1>
 	<p>Id: @game.Id</p>
@@ -50,6 +59,10 @@ else
 
 	private BoardGame? game;
 
+	private bool isLoading = true;
+
+	private string? error;
+
 	private IEnumerable<BoardGame> games = [];
 
 
@@ -60,11 +73,28 @@ else
 
 	protected override async Task OnParametersSetAsync()
 	{
-		game = await gamesQuery.GetGameByIdAsync(Id);
+		isLoading = true;
+		error = null;
+		game = null;
 
-		if (game is null)
+		try
 		{
-			Nav.NotFound();
+			game = await ApiClient.GetGameByIdAsync(Id);
+
+			if (game is null)
+			{
+				Nav.NotFound();
+			}
+		}
+
+		catch (HttpRequestException)
+		{
+			error = "Kunne ikke hente spillet. Prøv igjen senere.";
+		}
+
+		finally
+		{
+			isLoading = false;
 		}
 	}
 
