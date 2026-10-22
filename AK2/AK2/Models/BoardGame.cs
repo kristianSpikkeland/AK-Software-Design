@@ -5,7 +5,6 @@ namespace AK2.Models
 {
     public class BoardGame
     {
-        private static int _nextId = 1;
         public int Id { get; set; }
         public DateTime? StartedAt { get; set; }
         public string Name { get; set; } = "";
@@ -20,7 +19,6 @@ namespace AK2.Models
 
         public BoardGame(string name, int minPlayers, int maxPlayers, string category)
         {
-            Id = _nextId++;
             Name = name;
             MinPlayers = minPlayers;
             MaxPlayers = maxPlayers;
