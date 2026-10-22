@@ -703,7 +703,7 @@ private async Task HandleAdd(BoardGame g)
 
 Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og endringene i en fane blir oppdatert i de andre når siden refreshes.
 
-### Oppgave 4
+## Oppgave 4
 Angret stort på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
 Da er det enklere å demonstrere faktisk bruk av APIer istedenfor den løsningne jeg startet på der alt ligger på server siden.
 En annen fordel med webassembly er at spillkvelden kan kjøres uten internett tilgang. 
@@ -724,8 +724,11 @@ Selvom koden og API kallene blir noe konstruert i dette tilfellet vil API allike
 Gjorde GamesStorageAndQuery metodene mine asynkrone. Det er vanlig praksis når man snakker med database. Etter litt diskusjoner med KI så fant man ut at hensikten med å gjøre det for listen er liten.
 I verste fall blir programmet tregere. Men valgte å stå for den asynkrone varianten da man kan lage et interface og bytte ut listelagringen med en database senere.
 
-For API delen av oppgaven skrev man det mest av koden selv. Vedlegget: fra-blazor-server-til-interactive-auto-ren.md har vært en god hjelp under denne delen av oppgaven.
-Men fikk litt hjelp med implementering av sletting: 
+For å ha mer kontroll over dataene som blir sendt, valgte jeg å opprett GameDTO. Da sender man kun over de egenskapene som man selv ønsker.
+
+For API delen av oppgaven skrev man opprinnelig mye av koden selv. Men trengte senere en del hjelp for å få implementert APIene i eksisterende kode (Games og GamesDetails). 
+Vedlegget: fra-blazor-server-til-interactive-auto-ren.md har vært en god hjelp under denne delen av oppgaven.
+Fikk en del hjelp med implementering av sletting: 
 
 ```
 public Task<bool> DeleteGameAsync(int id)
@@ -758,6 +761,15 @@ gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =
     return deleted ? Results.NoContent() : Results.NotFound();
 });
 ```
+
+Skrev opprinnelig oppdaterings apiet uten id. La senere merke til at Apiet skulle ha id. Fikk hjelp av KI til å rette dette med riktig kode på serversiden.
+Slet med implementering i tabellen og kjørte denne prompten: Står litt fast. Skal bygge om til oppdatering med id. 
+I tabellen skal jeg ha en kolonne der jeg skriver inn ny kategori og i kolonnen til høyre skal jeg ha lagring av ny kategori. Vis meg alle endringene jeg må gjøre.
+
+Svar: Måtte endre en del filer som fortsatt hadde mangler selvom jeg hadde forsøkt etter samme mal som med slette apiet.
+Se vedleggmappen etter: KI-bruk-oppdatering-av-kategori.pdf
+
+
 Videre fikk man litt hjelp med å sette opp HttpClienten
 
 ```C#
@@ -773,8 +785,70 @@ Legg adressen i appsettings.json:
 }
 ```
 
-Ellers en del hjelp med feilmeldinger,
+Prompt: tenkte å bruke et EditForm for delete også. Men der har jeg ingen modell. Hvordan er det vanlig å løse det. Svar kort
+Svar: Det vanlige er å ikke bruke EditForm til sletting. Legg heller en «Slett»-knapp på hver rad i tabellen som sender spillets id rett til metoden:
+```html
+<td><button @onclick="() => Delete(game.Id)">Slett</button></td>
+```
 
+Prompt: Har brukt Required og Range for å validere forespørsler med DataAnnotations. Men hvis man skal sammenlige og si at minimum ikke kan være større enn maksimum? 
+Hvordan gjøre det med  DataAnnotations.
+
+Svar: 
+Det finnes ikke et ferdig attributt for å sammenligne to felt. [Compare] sjekker bare om to felt er like, for eksempel passord og bekreftet passord.
+Den vanlige løsningen er å la request-klassen implementere IValidatableObject og skrive regelen selv:
+
+```C#
+public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (MaxPlayers < MinPlayers)
+        {
+            yield return new ValidationResult(
+                "Maksimum spillere kan ikke være lavere enn minimum",
+                new[] { nameof(MaxPlayers) });
+        }
+    }
+```
+
+
+Ellers en del hjelp med feilmeldinger. 
+
+Under litt drøftinger rundt teoridelen av oppgaven fikk man tips om å flytte ut filteret fra GamesStorageAndQuery klassen. 
+Her er argumentasjonen jeg fikk: 
+Én ting å tenke på: testene i Oppgave1.cs tester FilterGames i GamesStorageAndQuery. Flytter du filtreringen til komponenten, mister du disse testene, og oppgave 5 krever minst tre tester av logikk utenfor komponentene.
+Et vanlig grep er å flytte filtreringen og tilfeldig valg til en egen liten klasse som tar imot en liste spill og returnerer resultatet. Da kan spillhylla bruke den på lista fra API-et, og testene kan bruke den direkte.
+
+Synes dette virket ryddig. Hadde blitt litt uryddig å lage et API for å hente spillene for så å gå direkte til datakilden for å hente fileteret.
+Begynte å injecte dette filteret i Games, men fikk råd om å heller bruke static for å slippe injecting og registrering i Program.cs.
+
+Havnet i en ny problemstilling der spillhylla og mange komponenter bruker BoardGame mens APIet bruker DTO. Drøftet litt med KI og vurderte rådene jeg fikk som stort sett fornuftige.
+Utdeling av Id ble flyttet ut til datakilden slik som en database. Med formål om at konvertering fra DTO til BoardGame ikke skal bruke opp Id. 
+Men da man skulle begynne på ombyggingen reagerte man på at KI bare ville fjerne hele konstruktøren. Dette var jo et bevist designvalg jeg hadde valgt helt fra starten.
+Godtok det ikke og beholdt konstruktøren. Men Id genereringen ble flyttet ut fra konstruktøren. Grunnen til at konstruktør ble beholdt var for å gjøre minst mulig endring på eksisterende kode.
+Samtidig innser man at i en del tilfeller kan kode bli forenklet om konstruktør droppes og garantier for at egenskaper blir satt kan oppnås på annet vis en via konstruktør.
+
+
+Ba KI om å lage en instruks for ombygging:
+Se vedleggmappen etter: Ombygging-spillhylla-via-API.pdf
+
+Reagerte på valget om å gjøre GamesStorageAndQuery sin CreateGameAsync synkron. 
+Godtok det ikke og fikk forenklet koden ved at return Task.CompletedTask kunne fjernes fra forslaget
+
+I utgangspunktet liker jeg ikke den ekstra komplekisteten ved at klienten gjør om en DTO til BoardGame igjen. Den enkelste måten hadde vært å bare sende over BoardGame.
+For akkurat denne typen applikasjon anser jeg i ettertid at det sannsynligvis hadde vært beste løsning. 
+Velger å ikke gå tilbake på DTO designvalget da det er verdifull kunnskap å kunne arbeide med DTOer og få prosjekterfaring med slike objekter.
+
+
+### Teoridel oppgave 4
+#### Livssyklusmetode spillhylle
+Som livssyklusmetode for spillhyllen valgte jeg OnInitialized. 
+Dette er en fordel om administrator har lagt til flere spill, så vil disse komme med i oversikten om bruker navigerer tilbake til siden.
+
+Inne i OnInitialized metoden ligger:
+```C#
+GameNight.OnChange += OnGameNightChanged 
+```
+Den kodelinjen sørger for at informasjon om spillkvelden blir oppdatert live. 
 
 ## Oppgave 5
 ### Manuell testlogg 
@@ -860,7 +934,8 @@ Har fått KI til å lage noen emojier.
 Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se vedleggsmappen etter fil med navn: fra-blazor-server-til-interactive-auto-ren.md.
 Brukt enkelte ganger for å forenkle egenskrevet kode. 
 Litt CSS spørsmål.
-Litt spørsmål rundt teoridelen av oppgaven for å sikre at man har forstått konseptene skikkelig og får formulert ting faglig riktig.
+En del spørsmål rundt teoridelen av oppgaven for å sikre at man har forstått konseptene skikkelig og får formulert ting faglig riktig. 
+Oppgaven krevde en del ombygninger underveis grunnet blant annet endring til API. Fikk god hjelp av KI for disse ombyggninene.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
