@@ -2,7 +2,7 @@
 
 namespace AK2.Client
 {
-    public class CreateGameRequest
+    public class CreateGameRequest : IValidatableObject
     {
         [Required(ErrorMessage = "Kategori må fylles ut")]
         public string Category { get; set; }
@@ -16,5 +16,15 @@ namespace AK2.Client
 
         [Range(2, 20, ErrorMessage ="Ugyldig maksimum antall spillere")]
         public int MaxPlayers { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (MaxPlayers < MinPlayers)
+            {
+                yield return new ValidationResult(
+                    "Maksimum spillere kan ikke være lavere enn minimum",
+                    new[] { nameof(MaxPlayers) });
+            }
+        }
     }
 }
