@@ -12,10 +12,16 @@ namespace AK2.Data
             return boardGames;
         }
 
+        // The storage hands out ids, like a database would
+        private int nextId = 1;
+
         // Create
         public async Task CreateGameAsync(string name, int minPlayers, int maxPlayers, string category)
         {
-            boardGames.Add(new BoardGame(name, minPlayers, maxPlayers, category));
+            boardGames.Add(new BoardGame(name, minPlayers, maxPlayers, category)
+            {
+                Id = nextId++
+            });
         }
 
         // Read by name
@@ -30,13 +36,18 @@ namespace AK2.Data
             var games = await GetAllGamesAsync();
             return games.FirstOrDefault(g => g.Id == id);
         }
-           
+
 
         // Update category   
-        public async Task UpdateCategoryAsync(string name, string category)
+        public Task<bool> UpdateCategoryAsync(int id, string category)
         {
-            var game = await GetGameByNameAsync(name);
+            var game = boardGames.FirstOrDefault(g => g.Id == id);
+
+            if (game is null)
+                return Task.FromResult(false);
+
             game.Category = category;
+            return Task.FromResult(true);
         }
 
         // Delete by ud
@@ -47,34 +58,9 @@ namespace AK2.Data
         }
 
 
+      
 
-        public async Task <BoardGame?> GetRandomGameAsync()
-        {
-            if (boardGames.Count == 0)
-                return null;
+     
 
-            int index = Random.Shared.Next(boardGames.Count);
-            return boardGames[index];
-        }
-
-        
-
-
-        public IEnumerable<BoardGame> FilterGames(string nameFilter)
-        {
-            if (string.IsNullOrWhiteSpace(nameFilter))
-                return boardGames;
-
-            var filter = nameFilter.Trim();
-
-            if (int.TryParse(filter, out int players))
-            {
-                return boardGames.Where(g =>
-                    g.MinPlayers <= players && players <= g.MaxPlayers);
-            }
-
-            return boardGames.Where(g =>
-                g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
-        }
     }
 }
