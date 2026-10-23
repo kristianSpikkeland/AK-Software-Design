@@ -6,11 +6,24 @@ namespace AK2.Data
     public class GamesStorageAndQuery
     {
         public List<BoardGame> boardGames { get; set; } = new();
+        public List<(int GameId, int Rating)> boardGamesRatings { get; set; } = new();
 
         public async Task<List<BoardGame>> GetAllGamesAsync()
         {
             return boardGames;
         }
+
+        public async Task<double> GetTotalRatingByGame(int id)
+        {
+            var ratings = boardGamesRatings.Where(r => r.GameId == id).ToList();
+
+            if (ratings.Count == 0)
+                return 0;
+
+            return ratings.Average(r => r.Rating);
+        }
+        
+        
 
         // The storage hands out ids, like a database would
         private int nextId = 1;
@@ -39,22 +52,35 @@ namespace AK2.Data
 
 
         // Update category   
-        public Task<bool> UpdateCategoryAsync(int id, string category)
+        public async Task<bool> UpdateCategoryAsync(int id, string category)
         {
             var game = boardGames.FirstOrDefault(g => g.Id == id);
 
             if (game is null)
-                return Task.FromResult(false);
+                return false;
 
             game.Category = category;
-            return Task.FromResult(true);
+            return true;
         }
 
         // Delete by ud
-        public Task<bool> DeleteGameAsync(int id)
+        public async Task<bool> DeleteGameAsync(int id)
         {
-            var removed = boardGames.RemoveAll(g => g.Id == id) > 0;
-            return Task.FromResult(removed);
+            return boardGames.RemoveAll(g => g.Id == id) > 0;
+        }
+
+        public async Task<bool> UpdateRatingAsync(int id, int rating)
+        {
+            var game = boardGames.FirstOrDefault(g => g.Id == id);
+
+            if (game is null)
+                return false;
+
+            game.Rating = rating;
+            game.RatingCounter++;
+            boardGamesRatings.Add((id, rating));
+
+            return true;
         }
 
 
