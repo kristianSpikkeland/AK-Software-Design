@@ -36,9 +36,9 @@ else if (game is not null)
         <p>@message</p>
     }
 
-	<DiceRating BoardGame="game" @key="game.Id" ReadOnly="false" />
+	<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false" />
 
-	<EditForm Model="@game" OnValidSubmit="Save" FormName="game-form">
+	<EditForm Model="@game" OnValidSubmit="UpdateRating" FormName="game-form">
 		<DataAnnotationsValidator />
 		<label>Ditt terningkast: </label><InputNumber @bind-Value="game.Rating" />
 		<ValidationMessage For="() => game.Rating" />
@@ -63,13 +63,19 @@ else
 
 	private string? error;
 
-	private IEnumerable<BoardGame> games = [];
+	// The DiceRating component rendered on this page
+	private DiceRating? diceRating;
+
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
 
 
 	protected override void OnInitialized()
-	=> GameNight.OnChange += OnGameNightChanged;
+	{
+		GameNight.OnChange += OnGameNightChanged;
+	}
 
-	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -100,11 +106,6 @@ else
 
 	private void GoBack() => Nav.NavigateTo("/games");
 
-	public void Save()
-	{
-		// await GameApi.CreateAsync(game);
-	}
-
 
 
 	private string? message;
@@ -121,5 +122,25 @@ else
 	private async Task HandleRemove(BoardGame g) => GameNight.RemoveAsync(g.Id);
 
 	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+
+
+
+	private async Task UpdateRating()
+	{
+		try
+		{
+			await ApiClient.UpdateRatingAsync(Id, new UpdateRatingRequest { Rating = game!.Rating });
+
+			// Fetches the new total in the DiceRating shown on the page
+			if (diceRating is not null)
+			{
+				await diceRating.RefreshTotalAsync();
+			}
+		}
+		catch
+		{
+			error = "Oppdatering av vurdering feilet";
+		}
+	}
 
 }
