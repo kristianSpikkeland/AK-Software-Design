@@ -23,15 +23,20 @@
 <br />
 
 @* Shows the games *@
-@if (error is not null)
+@if (isLoading)
 {
-	<p style="color:red">@error</p>
+    <p>Laster spill...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+else if (!games.Any())
+{
+    <p>Det finnes ingen spill i samlingen.</p>
 }
 
-@if (games is null)
-{
-	<p>Laster...</p>
-}
+
 
 else
 {
@@ -71,6 +76,7 @@ else
 	private IReadOnlyList<BoardGame>? games;
 	private int id;
 	private string? error { get; set; }
+	private bool isLoading = true;
 
 	private UpdateCategoryRequest EditedModel { get; set; } = new();
 	private CreateGameRequest NewGame { get; set; } = new();
@@ -87,6 +93,10 @@ else
 		catch 
 		{
 			error = $"Kunne ikke hente spill: ";
+		}
+		finally
+		{
+        isLoading = false;
 		}
 	}
 
