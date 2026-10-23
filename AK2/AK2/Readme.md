@@ -865,7 +865,58 @@ Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på 
 
 Kunne ha forsøkt meg på å lagre vurderingenen i nettleseren, men føler det gir liten verdi. Denne dataen burde egentlig ligge i en database.
 
+Prøvde å på egenhånd legge til bekreftelse på om admin virkelig ønsker å slette spill på admin siden. Fulgte samme oppsett som jeg hadde fått for bekreftelse av resetting av spillkveld.
+Fikk det ikke helt til da bekreftelsen ble vist for alle spill i tabellen. 
 
+Fikk dette svaret fra KI:
+
+Bytt bool (confirmReset) med en nullbar id:
+```C#
+private int? gameToDelete;
+```
+
+Sjekk om akkurat denne raden er den som skal slettes. Legg også knappene i en <td>, så HTML-en blir gyldig:
+
+```C#
+<td>
+	@if (gameToDelete == game.Id)
+	{
+		<p>Er du sikker på at spillet skal slettes? All lagret informasjon går tapt.</p>
+		<button class="btn btn-danger" @onclick="() => Delete(game.Id)">Ja, slett</button>
+		<button class="btn btn-secondary" @onclick="() => gameToDelete = null">Avbryt</button>
+	}
+	else
+	{
+		<button class="btn btn-outline-danger" @onclick="() => gameToDelete = game.Id">Slett spill</button>
+	}
+</td>
+```
+
+Nullstill etter slettingen:
+```
+await ApiClient.DeleteGameAsync(id);
+gameToDelete = null;
+await LoadGames();
+```
+
+Fikk også litt hjelp med riktig rekkefølge for brukermeldinger samt en validering som gjør at bruker får opp en feilmelding om to faner er oppe og bruker sletter spillet i begge faner.
+Testet det, men det funket ikke.
+Fikk Claude til å formulere hva som ble gjort da jeg er på noe tynn is akkurat her:
+
+Måtte legge til innhold i 404-svarene i Program.cs. Uten innhold kjørte UseStatusCodePagesWithReExecute forespørselen på nytt mot /not-found, som ikke godtar DELETE, og klienten fikk 405. 
+Da viste adminsiden «Sletting av spill feilet». Med innhold får klienten 404, og siden viser «Spillet var allerede slettet».
+
+Konkret ble eks:
+```C#
+return deleted ? Results.NoContent() : Results.NotFound();
+```
+
+Til
+```
+return deleted ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
+```
+
+Som førte til at riktig feilmelding ble vist om to faner var oppe samtidig og jeg prøvde å slette spillet i begge. Feilmelding "Spillet var allerede slettet" ble vist.
 
 ### Teoridel oppgave 4
 #### Livssyklusmetode spillhylle
@@ -968,6 +1019,68 @@ Via menyen er appen allerede tilkoblet. Blazor bytter side uten ny innlasting, s
 
 Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunne se dataen selvom siden ikke er interaktiv enda.
 
+### Oppgave4 KI bruk tester
+Prompt: Hvordan stopper man et API. Bare kommentere det ut?
+
+Fikk til svar at man kunne bytte til en port som ingen bruker. Eks:
+```
+"ApiBaseUrl": "https://localhost:7999/"
+```
+Sa meg enig i at det var en god løsning. 
+
+Prompt: Hvordan sender man ugyldige data rett itl API-et fra en .http fil? Svar kort.
+
+Svar: Lag en fil i prosjektet, for eksempel AK2.http, via Add → New Item → HTTP File i Visual Studio.
+Skriv inn forespørslene, med ### mellom hver:
+
+Koden under er kun et utdrag av det man fikk:
+
+```http
+@baseUrl = https://localhost:7259
+
+### Tomt navn
+POST {{baseUrl}}/api/games
+Content-Type: application/json
+
+{ "name": "", "category": "Strategi", "minPlayers": 2, "maxPlayers": 4 }
+```
+
+Start appen, og klikk Send request over hver forespørsel. Svaret vises til høyre, og alle tre skal gi 400
+Bad Request med feilmeldingen fra ServerGamesService.
+
+Prompt: Kan man plusse slik: 
+```C#
+private void GoNext() => Nav.NavigateTo("/games/{Id:int+1}")
+```
+
+Svar: Bruk en interpolert streng med $ foran, og regn ut tallet inni krøllparentesen:
+```C#
+private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
+```
+
+#### Gjengivelsesmetode for applikasjonen
+Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly 
+eller i mange tilfeller enda bedre Interactive Auto grunnet muligheten for interaktrivitet på siden frem til WebAssembly-filene er lastet ned.
+Trodde egentlig at det bare gjaldt visningen men KI påstår at siden kan bli interkativ. Altå at den reagerer på klikk og slikt. Virker jo utrolig bra :)
+En fordel med Interactive Server er at prosjektet blir noe enklere i oppsettet fra starten og naturligvis at sidene kan være interaktive og gi god brukeropplevelse
+i motsetning til SSR som gir statiske sider. I 2026 krever brukeren mer enn på 90 tallet.   
+
+ 
+Nå er gjengivelsesmodusen Interactive Server og klikk blir sendt over SignalR. Interactive Server er satt globalt på Routes og HeadOutlet i App.razor. 
+Grunnen til at det ble satt slik var at jeg opplevde problemer med at GameBadgen ikke ville oppdatere seg når den lå i navigasjonsmenyen. 
+Badgen kan reagere på OnChange om Interactive Server er global, men med interaktivitet per side var layouten statisk og endring ble ikke vist.
+Layouten er foreldre til menyen så om layouten er statisk blir alt i menyen statisk. 
+
+### Hvor koden kjører
+Koden kjører på serveren og siden det er på prerendring slik som jeg så med det doble API kallet så blir hele den første siden sendt første gang.
+Det som er litt kunstig siden vi ikke har en reel grunn med dette prosjektet er at klienten også ligger på serversiden og kaller APIet. Den kunne vært flyttet til nettleseren med WebAssembly.
+Ved endringer blir ofte kun den ene tingen byttet ut istedenfor at hele siden lastes som med klassisk MVC.
+Så for å oppsummere så ligger koden på serversiden. Nettleseren rendrer HTML og holder på SignalR forbindelsen i tillegg til å lagre data relatert til spillkvelden med ProtectedLocalStorage.
+Ble bevist på av KI at lagringen i nettlesten er kryptert og at det er serveren som gjør spillkvelden om til JSON krypterer den og ber nettleseren om å lagre den. 
+Videre ble jeg forklart at ved oppstart ber serveren om teksten tilbake og dekrypterer den. Synes det var ganske interressant :)
+Men antar at denne krypteringen i nettleseren kan knekkes ganske enkelt. Sensitive data skal uansett ikke ligge i nettleseren.
+Rettelse: KI mener at denne krypteringen er vanskelig å knekke. Det gjenstår å se... 
+
 
 Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
 
@@ -1042,12 +1155,50 @@ Faktisk resultat: Som forventet. Endringer i en fane må refreshes
 
 Se slutten av dokumentet for skjermbilder av spillhylla i forskjellige bredder.
 
-Testtilfelle: 
-Steg: 
-Forventet resultat: 
-Faktisk resultat 
+#### For oppgave 4
 
+Testtilfelle: Stopp API-et
+Steg: Åpne spillhylle
+Forventet resultat: Appen viser feilmelding og krasjer ikke
+Faktisk resultat: Viser først Laster...  For deretter å bytte til meldingen: Kunne ikke hente spillene. Prøv igjen senere.
 
+Testtilfelle: Opprettelse spill
+Steg: Opprett spill med tomt navn
+Forventet resultat: Feilmelding vises
+Faktisk resultat: Som foreventet. "Navn må fylles ut" vises med rød skrift 
+
+Testtilfelle: Opprettelse spill
+Steg: Opprett spill der MaxPlayers lavere enn MinPlayers
+Forventet resultat: Feilmelding vises
+Faktisk resultat. Som forventet. "Maksimum spillere kan ikke være lavere enn minimum" vises med rød skrift.
+
+Testtilfelle: Send ugyldige data rett fra API
+Steg: Kontroller svaret
+Forventet resultat: 400 
+Faktisk resultat: Som forventet for alle 3 testtilfeller
+
+Testtilfelle: Endre et spil
+Steg: Kontroller spillhylla og spillsiden
+Forventet resultat: Begge viser endringen 
+Faktisk resultat: Som forventet
+
+Testtilfelle: Neste spill
+Steg: Bruker klikker på neste spill knapp
+Forventet resultat: Id parameter for adressen øker med en og neste spill vises om det finnes en høyere id (og spillet ikke er slettet). Om det ikke finnes høyere Id vises NotFound siden. 
+Faktisk resultat: Som forventet
+
+Testtilfelle: Slett et spill som ligger i Min spillekveld
+Steg: Deﬁner og dokumenter hva som skal skje
+Forventet resultat: Spillet vises ikke lengre i spillkvelden
+Faktisk resultat: Ikke som jeg forventet. Spillet ligger der fortsatt. Men synes egentlig ikke det gjør noe.
+Alle spillene for spillkvelden forsvinner i det jeg velger nullstill spillkveld. 
+Om admin driver å sletter spill mens noen stakkars spillere spiller dette spillet så er det bare bra om det ikke blir fjernet.
+I ettertid så gir oppførselen også mening da spillkvelden holder sin egen tilstand og har sin egen liste. 
+
+Testtilfelle: Feil url spillside
+Steg: Åpne spillsiden for en ID som API-et svarer 404 på
+Forventet resultat: NotFound siden vises med melding "Spillet finnes ikke, eller adressen er feil". 
+Faktisk resultat: Som forventet. 
 
 ## Generell KI bruk
 Har bedt KI om å utdype oppgavebeskrivelse uten å skrive kode. 
@@ -1068,7 +1219,9 @@ Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI.
 Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet.
 Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år.
 Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
-Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. 
+Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort.
+Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :)
+
  
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
