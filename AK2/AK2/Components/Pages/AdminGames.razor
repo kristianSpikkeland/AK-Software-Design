@@ -23,13 +23,18 @@
 <br />
 
 @* Shows the games *@
+@if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+
 @if (isLoading)
 {
     <p>Laster spill...</p>
 }
-else if (error is not null)
+else if (games is null)
 {
-    <p style="color:red">@error</p>
+    @* Hentingen feilet, feilmeldingen står over *@
 }
 else if (!games.Any())
 {
@@ -65,21 +70,35 @@ else
 					<td>@game.Category</td>
 					<td><input value="@GetNewCategory(game.Id)" @oninput="e => newCategories[game.Id] = e.Value?.ToString() ?? string.Empty" /></td>
 					<td><button @onclick="() => Update(game.Id)">Lagre</button></td>
-					<td><button @onclick="() => Delete(game.Id)">Slett</button></td>
+
+					<td>
+						@if (gameToDelete == game.Id)
+						{
+							<p>Er du sikker på at spillet skal slettes?</p>
+							<button class="btn btn-danger" @onclick="()=> Delete(game.Id)">Ja, slett</button>
+							<button class="btn btn-secondary" @onclick="() => gameToDelete = null">Avbryt</button>
+						}
+						else
+						{
+							<button class="btn btn-outline-danger" @onclick="() => gameToDelete = game.Id">Slett spill</button>
+						}
+					</td>
+
 				</tr>
 			}
 		</tbody>
 	</table>
+
+
 }
 
 @code {
 	private IReadOnlyList<BoardGame>? games;
-	private int id;
 	private string? error { get; set; }
 	private bool isLoading = true;
 
-	private UpdateCategoryRequest EditedModel { get; set; } = new();
 	private CreateGameRequest NewGame { get; set; } = new();
+	private int? gameToDelete;
 
 	private async Task LoadGames()
 	{
@@ -92,7 +111,7 @@ else
 		}
 		catch 
 		{
-			error = $"Kunne ikke hente spill: ";
+			error = $"Kunne ikke hente spillet ";
 		}
 		finally
 		{
@@ -131,10 +150,16 @@ else
 	{
 		try
 		{
-			await ApiClient.DeleteGameAsync(id);
+			var deleted = await ApiClient.DeleteGameAsync(id);
 
-			// Relods the games
+			gameToDelete = null;
 			await LoadGames();
+
+			// Set after LoadGames, which clears error
+			if (!deleted)
+			{
+				error = "Spillet var allerede slettet";
+			}
 		}
 		catch
 		{
@@ -182,5 +207,7 @@ else
 			error = "Kunne ikke oppdatere kategori";
 		}
 	}
+
+	
 
 }
