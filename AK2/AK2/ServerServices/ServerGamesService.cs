@@ -48,6 +48,24 @@ namespace AK2.ServerService
             return await query.UpdateCategoryAsync(id, request.Category);
         }
 
+        public async Task<bool> UpdateRatingAsync(int id, UpdateRatingRequest request)
+        {
+            // Adds validation
+            if (request.Rating <1)
+            {
+                throw new ArgumentException("Vurdering kan ikke være mindre enn 1");
+            }
+
+            if (request.Rating > 6)
+            {
+                throw new ArgumentException("Vurdering kan ikke være større enn 6");
+            }
+
+            // If all validation passes, then its safe to call the data layer
+            return await query.UpdateRatingAsync(id, request.Rating);
+        }
+
+
         private static GameDTO ToDto(BoardGame game) => new(
             game.Id,
             game.Name,
@@ -74,6 +92,11 @@ namespace AK2.ServerService
         public async Task<bool> DeleteGameAsync(int id)
         {
             return await query.DeleteGameAsync(id);
+        }
+
+        public async Task<double> GetTotalRatingByGame(int id)
+        {
+            return await query.GetTotalRatingByGame(id);
         }
     }
 }
