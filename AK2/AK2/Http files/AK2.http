@@ -1,0 +1,19 @@
+@baseUrl = https://localhost:7259
+
+### Tomt navn
+POST {{baseUrl}}/api/games
+Content-Type: application/json
+
+{ "name": "", "category": "Strategi", "minPlayers": 2, "maxPlayers": 4 }
+
+### Maks lavere enn min
+POST {{baseUrl}}/api/games
+Content-Type: application/json
+
+{ "name": "Ludo", "category": "Familie", "minPlayers": 5, "maxPlayers": 2 }
+
+### Terningkast utenfor 1–6
+PUT {{baseUrl}}/api/games/1/rating
+Content-Type: application/json
+
+{ "rating": 9 }
