@@ -76,19 +76,45 @@ gamesApi.MapGet("", async (ServerGamesService gameService) =>
 });
 
 
+
 gamesApi.MapGet("{id:int}", async (int id, ServerGamesService gameService) =>
 {
     var game = await gameService.GetGameByIdAsync(id);
     return game is null ? Results.NotFound() : Results.Ok(game);
 });
 
+
+gamesApi.MapGet("{id:int}/totalRatingByGame", async (int id, ServerGamesService gameService) =>
+{
+    var rating = await gameService.GetTotalRatingByGame(id);
+    return Results.Ok(rating);
+});
+
+
 // Updates game category
-// Updates game category
-gamesApi.MapPut("{id:int}", async (int id, ServerGamesService gamesService, UpdateCategoryRequest request) =>
+gamesApi.MapPut("{id:int}/category", async (int id, ServerGamesService gamesService, UpdateCategoryRequest request) =>
 {
     try
     {
         var updated = await gamesService.UpdateCategoryAsync(id, request);
+
+        return updated ? Results.NoContent() : Results.NotFound();
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+gamesApi.MapPut("{id:int}/rating", async (int id, ServerGamesService gamesService, UpdateRatingRequest request) =>
+{
+    try
+    {
+        var updated = await gamesService.UpdateRatingAsync(id, request);
 
         return updated ? Results.NoContent() : Results.NotFound();
     }
