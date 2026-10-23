@@ -838,6 +838,34 @@ I utgangspunktet liker jeg ikke den ekstra komplekisteten ved at klienten gjør 
 For akkurat denne typen applikasjon anser jeg i ettertid at det sannsynligvis hadde vært beste løsning. 
 Velger å ikke gå tilbake på DTO designvalget da det er verdifull kunnskap å kunne arbeide med DTOer og få prosjekterfaring med slike objekter.
 
+Under arbeidet med oppdatering av vurdering (rating) møtte man på enklete utfordringer knyttet til arkitektur. Jeg laget en egen UpdateRatingRequest og et eget endepunkt for oppdatering av rating.
+Uheldigvis hadde dette endepunktet samme adresse som det andre oppdateringspunktet for oppdatering av kategori så det funket dårlig.
+Fikk råd av KI om at man kan lage kun en UpdateGameRequest med flere egenskaper og slå sammen de to oppdateringsendepunktene. Ulempen da er at man i mange tilfeller sender over mer data enn man trenger.
+Vurderte rådet som fornuftig med tanke på forenkling av arkitektur men valgte å ikke implementere endringen da det medførte endringer i en del filer.
+Valgte heller å lage to oppdateringspunkter for å spare tid samt at flere punkter også har sine fordeler. Fikk intrykk av at det handler mye om kontroll av endringer.
+Videre vil ikke en endring der man samler oppdateringen til et punkt påvirke sluttbrukerens opplevelse negativt. Men flere endepunkter vil kunne kreve mer vedlikehold av koden. 
+Men tipset fra KI er absoulutt jeg tar med meg til neste prosjekt om det passer inn.  
+
+Begynte å implementere logikk for totalvurdering. Laget en egen liste for totalvurdering i datalaget og metode for å hente ut totalvurdering av id. 
+I domene klassen la jeg til en teller som teller oppover for hver gang en vurdering blir laget. 
+På serversiden i klassen ServerGamesService returnerte jeg bare direkte fra datalaget. Så blir egentlig bare et unødvendig ledd, men lot det gå da man kan bygge opp med mer logikk senere.
+La til et endepunkt kalt apGet("{id:int}/totalRatingByGame" i program.cs. Videre la man til endepunktet på klientsiden. 
+Implementerte visning av Totalverdi i DiceRating komponenten. Måtte ha litt hjelp da man først ville kjøre en async metode i htmlen men KI sa at jeg måtte heller bruke livssyklusmetode og hente ut verdien som et parameter.
+
+Da man skulle kjøre på nytt opplevde man en rekke feilmeldinger. Kanskje ikke unaturlig da man haddde skrevet all koden selv. Fikk hjelp av KI til å rette feilene.
+
+Men reagerte sterkt da det var snakk om en feilmedling helt tilbake i datalaget. KI ville flytte listen for vurdering tilbake til domene klassen.
+Sa blankt nei. Jeg ville skille disse lagene fra hverandre. Fikk hjelp med å skrive om logikken riktig, men prinsippet ble helt likt. Feilen var at jeg burde hente ut verderingen for et spill før jeg delte på antallet vurderinger.
+Hadde faktisk klart å glemme å legge til rating for listen også. Hjelper lite å bare lagre id :) Var også litt feil med hvordan jeg hentet id i komponenten, kunne bare bruke boardgame istedenfor å lage et nytt private felt for id.
+
+I forhold til komponenten DiceRating og siden GamesDetails forsøkte jeg først selv. Men fikk ikke endringen av samelt rating til å bli live oppdatert. 
+Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på hva jeg hadde gjort feil.
+
+Ønsket senere å ha totalvurderingen som desimaltall og fikk hjelo av KI til å se alle stedene som måtte endres.
+
+Kunne ha forsøkt meg på å lagre vurderingenen i nettleseren, men føler det gir liten verdi. Denne dataen burde egentlig ligge i en database.
+
+
 
 ### Teoridel oppgave 4
 #### Livssyklusmetode spillhylle
@@ -940,6 +968,7 @@ Via menyen er appen allerede tilkoblet. Blazor bytter side uten ny innlasting, s
 
 Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunne se dataen selvom siden ikke er interaktiv enda.
 
+
 Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
 
 ## Oppgave 5
@@ -1033,6 +1062,13 @@ Oppgaven krevde en del ombygninger underveis grunnet blant annet endring til API
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
 * Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
+
+Med KI er det veldig lett å bli styrt på gale veier om man ikke er kritisk. Likte forslaget om lagring i nettleseren, men det kom med en kostnad i form av tid på implemetering og kodeforstålese.I tillegg er dette ekstra kode som skal vedlikeholdes. 
+Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI.
+Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet.
+Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år.
+Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
+Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. 
  
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
