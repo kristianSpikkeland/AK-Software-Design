@@ -98,7 +98,7 @@ gamesApi.MapPut("{id:int}/category", async (int id, ServerGamesService gamesServ
     {
         var updated = await gamesService.UpdateCategoryAsync(id, request);
 
-        return updated ? Results.NoContent() : Results.NotFound();
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
     }
 
     catch (ArgumentException exception)
@@ -116,7 +116,7 @@ gamesApi.MapPut("{id:int}/rating", async (int id, ServerGamesService gamesServic
     {
         var updated = await gamesService.UpdateRatingAsync(id, request);
 
-        return updated ? Results.NoContent() : Results.NotFound();
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
     }
 
     catch (ArgumentException exception)
@@ -133,7 +133,7 @@ gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =
 {
     var deleted = await gamesService.DeleteGameAsync(id);
 
-    return deleted ? Results.NoContent() : Results.NotFound();
+    return deleted ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
 }); 
 
 
