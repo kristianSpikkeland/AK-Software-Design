@@ -15,6 +15,7 @@ namespace AK2.Models
 
         [Range(1, 6, ErrorMessage = "Terningkastet må være fra 1 til 6")]
         public int Rating { get; set; } // dice roll, 1-6
+        public int RatingCounter { get; set; }
         public string Description { get; set; } = "";
 
         public BoardGame(string name, int minPlayers, int maxPlayers, string category)
