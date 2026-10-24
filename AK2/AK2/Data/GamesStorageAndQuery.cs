@@ -29,12 +29,15 @@ namespace AK2.Data
         private int nextId = 1;
 
         // Create
-        public async Task CreateGameAsync(string name, int minPlayers, int maxPlayers, string category)
+        public async Task<BoardGame> CreateGameAsync(string name, int minPlayers, int maxPlayers, string category)
         {
-            boardGames.Add(new BoardGame(name, minPlayers, maxPlayers, category)
+            var game = new BoardGame(name, minPlayers, maxPlayers, category)
             {
                 Id = nextId++
-            });
+            };
+
+            boardGames.Add(game);
+            return game;
         }
 
         // Read by name
