@@ -6,7 +6,7 @@
 
 
 
-<h3>Brettspill</h3>
+<h2>Brettspill</h2>
 
 <div class="search-box">
 	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere" />
@@ -49,6 +49,8 @@ else if (!filteredGames.Any())
 	}
 </div>
 
+<br />
+<br />
 
 <p>Antall treff: @filteredGames.Count()</p>
 
