@@ -1,0 +1,12 @@
+.game-box {
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem; /* avstand til neste boks og til teksten under */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+p {
+    margin-bottom: 1.5rem; /* avstand under hvert avsnitt */
+}
