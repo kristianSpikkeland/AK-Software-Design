@@ -128,13 +128,14 @@ else
 	{
 		try
 		{
-			await ApiClient.CreateGameAsync(NewGame);
+			var createdGame = await ApiClient.CreateGameAsync(NewGame);
 
 			// Resets user window
 			NewGame = new CreateGameRequest();
 
-			// Reloads the games
-			await LoadGames();
+			// Adds the returned game to the list, instead of fetching all games again
+			games = [.. games ?? [], createdGame];
+			error = null;
 		}
 
 		catch
