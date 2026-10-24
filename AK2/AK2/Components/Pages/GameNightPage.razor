@@ -4,18 +4,19 @@
 
 <h1>Spillkveld</h1>
 <h3>Valgte spill: </h3>
+
 @foreach (var game in GameNight.Games)
 {
-	<p>@game.Name</p>
-	<StartStopGame GameId="game.Id" OnGameEnded="StateHasChanged" />
+	<div class="game-box">
+		<h3>@game.Name</h3>
+		<StartStopGame GameId="game.Id" OnGameEnded="StateHasChanged" />
+	</div>
 }
-<br />
 
 <p>Total spilletid: @GameNight.TotalPlayTime.ToString(@"hh\:mm\:ss")</p>
 
-<br />
 <p>Antall treff: @GameNight.Games.Count()</p>
-<br />
+
 
 @if (confirmReset)
 {
