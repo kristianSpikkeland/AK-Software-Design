@@ -37,3 +37,11 @@ h1:focus {
     text-align: start;
 }
 
+.hero-image {
+    width: 100%; /* fyller bredden den har tilgjengelig ... */
+    max-width: 500px; /* ... men blir aldri bredere enn dette */
+    height: auto; /* høyden følger med, så bildet ikke strekkes */
+    display: block;
+    margin: 1rem 0; /* 0 på sidene gjør at bildet legger seg til venstre */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); /* skygge under bildet */
+}
