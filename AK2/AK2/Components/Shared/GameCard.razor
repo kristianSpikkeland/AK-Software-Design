@@ -5,7 +5,7 @@
 	<p>Minimum spillere: @BoardGame.MinPlayers</p>
 	<p>Maksimum spillere: @BoardGame.MaxPlayers</p>
 	<p>Kategori: @BoardGame.Category</p>
-	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" />
+	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
 
 	<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
 	

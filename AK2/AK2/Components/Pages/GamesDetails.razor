@@ -36,15 +36,8 @@ else if (game is not null)
         <p>@message</p>
     }
 
-	<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false" />
-
-	<EditForm Model="@game" OnValidSubmit="UpdateRating" FormName="game-form">
-		<DataAnnotationsValidator />
-		<label>Ditt terningkast: </label><InputNumber @bind-Value="game.Rating" />
-		<ValidationMessage For="() => game.Rating" />
-		<button type="submit">Lagre vurdering</button>
-	</EditForm>
-	<br />	
+	<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false"
+				@bind-Value="game.Rating" @bind-Value:after="UpdateRating" />
 }
 
 else

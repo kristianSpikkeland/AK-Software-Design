@@ -8,7 +8,19 @@
 }
 
 <p>Totalvurdering av spillet: @totalRating?.ToString("0.0")</p>
-<p>Din vurdering: @BoardGame.Rating</p>
+
+<p>Din vurdering: @Value</p>
+
+@if (ReadOnly == false)
+{
+	<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
+	<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+
+	@if (validationMessage is not null)
+	{
+		<p style="color:red">@validationMessage</p>
+	}
+}
 
 @if (ReadOnly == false)
 {
@@ -20,18 +32,35 @@
 	[Parameter] public BoardGame? BoardGame { get; set; }
 	[Parameter] public int Value { get; set; }
 	[Parameter] public EventCallback<int> ValueChanged { get; set; }
-	private string? error { get; set; }
-
-	//Setting default value to true  
 	[Parameter] public bool ReadOnly { get; set; } = true;
 
+	// Local copy, so the component never changes its own Value parameter
+	private int newValue;
+	private string? validationMessage;
+	private string? error { get; set; }
+	  
 	private double? totalRating;
 
-	// The bell
-	public event Action? OnChange;
+	protected override void OnParametersSet() => newValue = Value;
 
+	private async Task SaveAsync()
+	{
+		if (newValue is < 1 or > 6)
+		{
+			validationMessage = "Terningkastet må være fra 1 til 6";
+			return;
+		}
+
+		validationMessage = null;
+
+		// Tells the parent about the new value
+		await ValueChanged.InvokeAsync(newValue);
+	}
+
+	
 	protected override async Task OnInitializedAsync() => await RefreshTotalAsync();
 
+	
 	// Called by the parent after a new rating is saved
 	public async Task RefreshTotalAsync()
 	{
