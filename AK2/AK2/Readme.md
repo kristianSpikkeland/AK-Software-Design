@@ -469,6 +469,11 @@ GameCard.razor
 <DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
 ```
 
+Egen kommentar
+Fordelen med endringen ble først og fremst at skjemaet ble flyttet ut av GamesDetails til komponenten.
+Dette gjør koden mer skalerbar om vi skulle hatt lagring av vurdering flere plasser.
+Liten betydning for GameCard da den bruker ReadOnly og ikke setter vurderinger.
+ 
 ## Oppgave 3
 La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
 
@@ -717,6 +722,9 @@ Gjenta med bredden 1280 (eller hvilken som helst bredde fra 1200 og oppover).
 Begynte med en enkel variant for start og slutt av spill. Fikk forklart en del rundt Stopwatch. Men med alle funksjonene jeg ønsket meg ble det til slutt en del kode.
 Jeg ønsket en knapp for å starte spill og en for å avslutte spill. Videre ønsket jeg en teller som fortsatte å telle om bruker forlater siden.
 For AI dokumentasjon av dette se: Tidtaking_spillkveld
+
+Til slutt ønsket man at spillene som brukeren hadde valgt på GameNightPage siden skulle rammes inn med en boks for hvert spill.
+Fikk hjelp av KI med å pakke det inn i en html klasse og lage en tilhørende css.
 
 ### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
@@ -1100,6 +1108,34 @@ Via menyen er appen allerede tilkoblet. Blazor bytter side uten ny innlasting, s
 
 Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunne se dataen selvom siden ikke er interaktiv enda.
 
+
+
+#### Gjengivelsesmetode for applikasjonen
+Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly 
+eller i mange tilfeller enda bedre Interactive Auto grunnet muligheten for interaktrivitet på siden frem til WebAssembly-filene er lastet ned.
+Trodde egentlig at det bare gjaldt visningen men KI påstår at siden kan bli interkativ. Altå at den reagerer på klikk og slikt. Virker jo utrolig bra :)
+En fordel med Interactive Server er at prosjektet blir noe enklere i oppsettet fra starten og naturligvis at sidene kan være interaktive og gi god brukeropplevelse
+i motsetning til SSR som gir statiske sider. I 2026 krever brukeren mer enn på 90 tallet.   
+
+ 
+Nå er gjengivelsesmodusen Interactive Server og klikk blir sendt over SignalR. Interactive Server er satt globalt på Routes og HeadOutlet i App.razor. 
+Grunnen til at det ble satt slik var at jeg opplevde problemer med at GameBadgen ikke ville oppdatere seg når den lå i navigasjonsmenyen. 
+Badgen kan reagere på OnChange om Interactive Server er global, men med interaktivitet per side var layouten statisk og endring ble ikke vist.
+Layouten er foreldre til menyen så om layouten er statisk blir alt i menyen statisk. 
+
+### Hvor koden kjører
+Koden kjører på serveren og siden det er på prerendring slik som jeg så med det doble API kallet så blir hele den første siden sendt første gang.
+Det som er litt kunstig siden vi ikke har en reel grunn med dette prosjektet er at klienten også ligger på serversiden og kaller APIet. Den kunne vært flyttet til nettleseren med WebAssembly.
+Ved endringer blir ofte kun den ene tingen byttet ut istedenfor at hele siden lastes som med klassisk MVC.
+Så for å oppsummere så ligger koden på serversiden. Nettleseren rendrer HTML og holder på SignalR forbindelsen i tillegg til å lagre data relatert til spillkvelden med ProtectedLocalStorage.
+Ble bevist på av KI at lagringen i nettlesten er kryptert og at det er serveren som gjør spillkvelden om til JSON krypterer den og ber nettleseren om å lagre den. 
+Videre ble jeg forklart at ved oppstart ber serveren om teksten tilbake og dekrypterer den. Synes det var ganske interressant :)
+Men antar at denne krypteringen i nettleseren kan knekkes ganske enkelt. Sensitive data skal uansett ikke ligge i nettleseren.
+Rettelse: KI mener at denne krypteringen er vanskelig å knekke. Det gjenstår å se... 
+
+
+Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
+
 ### Oppgave4 KI bruk tester
 Prompt: Hvordan stopper man et API. Bare kommentere det ut?
 
@@ -1139,33 +1175,23 @@ Svar: Bruk en interpolert streng med $ foran, og regn ut tallet inni krøllparen
 private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
 ```
 
-#### Gjengivelsesmetode for applikasjonen
-Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly 
-eller i mange tilfeller enda bedre Interactive Auto grunnet muligheten for interaktrivitet på siden frem til WebAssembly-filene er lastet ned.
-Trodde egentlig at det bare gjaldt visningen men KI påstår at siden kan bli interkativ. Altå at den reagerer på klikk og slikt. Virker jo utrolig bra :)
-En fordel med Interactive Server er at prosjektet blir noe enklere i oppsettet fra starten og naturligvis at sidene kan være interaktive og gi god brukeropplevelse
-i motsetning til SSR som gir statiske sider. I 2026 krever brukeren mer enn på 90 tallet.   
-
- 
-Nå er gjengivelsesmodusen Interactive Server og klikk blir sendt over SignalR. Interactive Server er satt globalt på Routes og HeadOutlet i App.razor. 
-Grunnen til at det ble satt slik var at jeg opplevde problemer med at GameBadgen ikke ville oppdatere seg når den lå i navigasjonsmenyen. 
-Badgen kan reagere på OnChange om Interactive Server er global, men med interaktivitet per side var layouten statisk og endring ble ikke vist.
-Layouten er foreldre til menyen så om layouten er statisk blir alt i menyen statisk. 
-
-### Hvor koden kjører
-Koden kjører på serveren og siden det er på prerendring slik som jeg så med det doble API kallet så blir hele den første siden sendt første gang.
-Det som er litt kunstig siden vi ikke har en reel grunn med dette prosjektet er at klienten også ligger på serversiden og kaller APIet. Den kunne vært flyttet til nettleseren med WebAssembly.
-Ved endringer blir ofte kun den ene tingen byttet ut istedenfor at hele siden lastes som med klassisk MVC.
-Så for å oppsummere så ligger koden på serversiden. Nettleseren rendrer HTML og holder på SignalR forbindelsen i tillegg til å lagre data relatert til spillkvelden med ProtectedLocalStorage.
-Ble bevist på av KI at lagringen i nettlesten er kryptert og at det er serveren som gjør spillkvelden om til JSON krypterer den og ber nettleseren om å lagre den. 
-Videre ble jeg forklart at ved oppstart ber serveren om teksten tilbake og dekrypterer den. Synes det var ganske interressant :)
-Men antar at denne krypteringen i nettleseren kan knekkes ganske enkelt. Sensitive data skal uansett ikke ligge i nettleseren.
-Rettelse: KI mener at denne krypteringen er vanskelig å knekke. Det gjenstår å se... 
-
-
-Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
-
 ## Oppgave 5
+### Dokumentasjon
+For dokumentasjon av sideoversikt samt kompoenttre valgte jeg å hente ut tegninger. Se vedleggsmappen, mappen Egendokumentasjon og dokumentet "Sideoversikt og komponenttre.pdf".
+For dataflyt dokumentasjon se vedleggsmappen og dokument med navn "Sekvensdiagram spillopprettelse"
+
+Videre laget jeg et diagram rundt flyten for opprettelse av spill. Under drøftinger med KI fikk jeg beskjed om at jeg ikke returnerer spill slik som oppgaveteksten krever.
+Sjekket med oppgavetekst og innså at det var en feil. Fikk også forklart at koden min er ueffektiv og det blir veldig mange spill etterhvert siden alle spill hentes på nytt etter opprettelse og oppdatering.
+Likte ikke helt tanken på mangler i forhold til oppgavetekst samt kode som ikke er egnet for mange spill. Det med mange spill er nok ikke en reel problemstilling i dette caset,
+men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om ombygging. Se vedleggsmappa og Ombygging-retur-av-spill-POST-og-PUT.pdf 
+
+Drøftet litt rundt PlayTimeMinutes. 
+Der gikk jeg for en variant som viser faktisk spilltid i forhold til registrering ved knappetrykk. Men fikk beskjed av KI om at det sannsynligvis skulle være et estimat.
+Det hadde jo vært betydelig enklere om man hadde tolket det slik fra starten :) Hadde spart meg for en del tid. 
+
+
+
+
 ### Manuell testlogg 
 #### For oppgave 2
 Testtilfelle: Åpne /games/ID
@@ -1287,9 +1313,12 @@ Har brukt KI en del ved å lime inn feilmeldinger og få forklart hva som er fei
 Har fått KI til å lage noen emojier.
 Har sett og hentet inspirasjon for et oppsett jeg fikk fra Claude i sommer. Se vedleggsmappen etter fil med navn: fra-blazor-server-til-interactive-auto-ren.md.
 Brukt enkelte ganger for å forenkle egenskrevet kode. 
-Litt CSS spørsmål.
+Litt CSS spørsmål og hjelp av KI til å lage CSS filer og lage html klasser.
 En del spørsmål rundt teoridelen av oppgaven for å sikre at man har forstått konseptene skikkelig og får formulert ting faglig riktig. 
 Oppgaven krevde en del ombygninger underveis grunnet blant annet endring til API. Fikk god hjelp av KI for disse ombyggninene.
+Fikk ChatGPT til å lage et bilde til forsiden. En del prompt frem og tilbake før man var fornøyd. Fikk hjelp til hvordan man setter inn bilde og tilhørende css.
+Mye sparring frem og tilbake under lagingen av diagrammer for å sikre at man forstod ting riktig. Fikk et veldig fint eksempel på sekvensdiagram som viste helen flyt fra bruker klikker via http og tilbake.
+Mitt sekvensdiagram er sterkt påvirket av eksempelet man fikk, men likte det veldig godt. Ryddig å få et overblikk over dataflyten. 
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
