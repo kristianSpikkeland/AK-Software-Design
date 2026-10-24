@@ -22,8 +22,22 @@ namespace AK2.Data
 
             return ratings.Average(r => r.Rating);
         }
-        
-        
+
+
+        // Updates the whole game. Returns null when the id does not exist
+        public async Task<BoardGame?> UpdateGameAsync(int id, string name, int minPlayers, int
+            maxPlayers, string category)
+        {
+            var game = boardGames.FirstOrDefault(g => g.Id == id);
+            if (game is null)
+                return null;
+            game.Name = name;
+            game.MinPlayers = minPlayers;
+            game.MaxPlayers = maxPlayers;
+            game.Category = category;
+            return game;
+        }
+
 
         // The storage hands out ids, like a database would
         private int nextId = 1;
@@ -54,6 +68,23 @@ namespace AK2.Data
         }
 
 
+        // Delete by ud
+        public async Task<bool> DeleteGameAsync(int id)
+        {
+            return boardGames.RemoveAll(g => g.Id == id) > 0;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
         // Update category   
         public async Task<bool> UpdateCategoryAsync(int id, string category)
         {
@@ -66,12 +97,7 @@ namespace AK2.Data
             return true;
         }
 
-        // Delete by ud
-        public async Task<bool> DeleteGameAsync(int id)
-        {
-            return boardGames.RemoveAll(g => g.Id == id) > 0;
-        }
-
+        // Update rating
         public async Task<bool> UpdateRatingAsync(int id, int rating)
         {
             var game = boardGames.FirstOrDefault(g => g.Id == id);
