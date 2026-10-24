@@ -55,8 +55,9 @@ gamesApi.MapPost("", async (CreateGameRequest request, ServerGamesService gameSe
 {
     try
     {
-        await gameService.CreateGameAsync(request);
-        return Results.NoContent();
+        var game = await gameService.CreateGameAsync(request);
+
+        return Results.Created($"/api/games/{game.Id}", game);
     }
 
     catch (ArgumentException exception)
