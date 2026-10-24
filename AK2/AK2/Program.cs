@@ -92,6 +92,26 @@ gamesApi.MapGet("{id:int}/totalRatingByGame", async (int id, ServerGamesService 
 });
 
 
+// Updates the whole game. 200 with the updated game, 400 on invalid data, 404 when the id does not exist
+gamesApi.MapPut("{id:int}", async (int id, UpdateGameRequest request, ServerGamesService gamesService) =>
+{
+    try
+    {
+        var game = await gamesService.UpdateGameAsync(id, request);
+
+        return game is null ? Results.NotFound(new { error = "Spillet finnes ikke" }) : Results.Ok(game);
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+
 // Updates game category
 gamesApi.MapPut("{id:int}/category", async (int id, ServerGamesService gamesService, UpdateCategoryRequest request) =>
 {
