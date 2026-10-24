@@ -11,29 +11,45 @@ namespace AK2.ServerService
     public sealed class ServerGamesService(GamesStorageAndQuery query)
     {
 
-        public async Task<GameDTO> CreateGameAsync(CreateGameRequest request)
+        // The same rules apply when a game is created and when it is changed, so the validation is written once
+        private static void ValidateGame(CreateGameRequest request)
         {
-            // Adds validation
             if (string.IsNullOrWhiteSpace(request.Name))
             {
                 // Throw returns automaticly
                 throw new ArgumentException("Navn kan ikke være tomt");
             }
-
             if (string.IsNullOrWhiteSpace(request.Category))
             {
                 throw new ArgumentException("Kategori kan ikke være tom");
             }
-
+            if (request.MinPlayers < 1)
+            {
+                throw new ArgumentException("Minimum antall spillere må være minst 1");
+            }
             if (request.MinPlayers > request.MaxPlayers)
             {
                 throw new ArgumentException("Minimum antall spiller kan ikke være større enn maksimum");
             }
+        }
+
+        public async Task<GameDTO> CreateGameAsync(CreateGameRequest request)
+        {
+            ValidateGame(request);
 
             // If all validation passes, then its safe to call the data layer
             var game = await query.CreateGameAsync(request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
 
             return ToDto(game);
+        }
+
+
+        // Updates the whole game. Returns null when the id does not exist
+        public async Task<GameDTO?> UpdateGameAsync(int id, UpdateGameRequest request)
+        {
+            ValidateGame(request);
+            var game = await query.UpdateGameAsync(id, request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
+            return game is null ? null : ToDto(game);
         }
 
         public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
