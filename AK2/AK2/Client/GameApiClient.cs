@@ -5,10 +5,14 @@ namespace AK2.Client
 {
     public sealed class GameApiClient(HttpClient http)
     {
-        public async Task CreateGameAsync(CreateGameRequest request)
+        public async Task<BoardGame> CreateGameAsync(CreateGameRequest request)
         {
             var response = await http.PostAsJsonAsync("api/games", request);
             response.EnsureSuccessStatusCode();
+
+            var dto = await response.Content.ReadFromJsonAsync<GameDTO>()
+                ?? throw new HttpRequestException("API-et returnerte ikke spillet");
+            return ToBoardGame(dto);
         } 
 
         public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
