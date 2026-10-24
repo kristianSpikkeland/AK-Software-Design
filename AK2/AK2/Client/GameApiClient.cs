@@ -15,31 +15,7 @@ namespace AK2.Client
             return ToBoardGame(dto);
         } 
 
-        public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
-        {
-            var response = await http.PutAsJsonAsync($"api/games/{id}/category", request);
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return false;
-            }
-
-            response.EnsureSuccessStatusCode();
-            return true;
-        }
-
-        public async Task<bool> UpdateRatingAsync(int id, UpdateRatingRequest request)
-        {
-            var response = await http.PutAsJsonAsync($"api/games/{id}/rating", request);
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return false;
-            }
-
-            response.EnsureSuccessStatusCode();
-            return true;
-        }
+        
 
         public async Task<bool> DeleteGameAsync(int id)
         {
@@ -54,6 +30,21 @@ namespace AK2.Client
             return true;
 
         }
+
+        // Returns the updated game, or null when the id does not exist (404)
+        public async Task<BoardGame?> UpdateGameAsync(int id, UpdateGameRequest request)
+        {
+            var response = await http.PutAsJsonAsync($"api/games/{id}", request);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            response.EnsureSuccessStatusCode();
+            var dto = await response.Content.ReadFromJsonAsync<GameDTO>()
+                ?? throw new HttpRequestException("API-et returnerte ikke spillet");
+            return ToBoardGame(dto);
+        }
+
 
         private static BoardGame ToBoardGame(GameDTO dto) =>
             new(dto.Name, dto.MinPlayers, dto.MaxPlayers, dto.Category)
@@ -91,5 +82,42 @@ namespace AK2.Client
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<double>();
         }
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
+        {
+            var response = await http.PutAsJsonAsync($"api/games/{id}/category", request);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+
+        public async Task<bool> UpdateRatingAsync(int id, UpdateRatingRequest request)
+        {
+            var response = await http.PutAsJsonAsync($"api/games/{id}/rating", request);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+
     }
 }
