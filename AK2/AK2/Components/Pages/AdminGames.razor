@@ -4,14 +4,14 @@
 <h3>AdminGames</h3>
 
 @* Creates a new game *@
-<EditForm Model="NewGame" OnValidSubmit = "Create">
+<EditForm Model="NewGame" OnValidSubmit="Create">
 
 	<DataAnnotationsValidator />
-    <ValidationSummary />
-	
+	<ValidationSummary />
+
 	<label>Navn: <InputText @bind-Value="NewGame.Name" /></label>
 
-    <label>Kategori: <InputText @bind-Value="NewGame.Category" /></label>
+	<label>Kategori: <InputText @bind-Value="NewGame.Category" /></label>
 
 	<label>Minimum spillere: <InputNumber @bind-Value="NewGame.MinPlayers" step="1" /></label>
 
@@ -22,23 +22,47 @@
 <br />
 <br />
 
+@* Changes an existing game. Shown when "Endre" is clicked in the table *@
+@if (editingGameId is not null)
+{
+	<h4>Endre spill (Id @editingGameId)</h4>
+
+	<EditForm Model="EditGame" OnValidSubmit="SaveEdit">
+
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+
+		<label>Navn: <InputText @bind-Value="EditGame.Name" /></label>
+
+		<label>Kategori: <InputText @bind-Value="EditGame.Category" /></label>
+
+		<label>Minimum spillere: <InputNumber @bind-Value="EditGame.MinPlayers" step="1" /></label>
+
+		<label>Maksimum spillere <InputNumber @bind-Value="EditGame.MaxPlayers" step="1" /></label>
+
+		<button type="submit">Lagre endringer</button>
+		<button type="button" @onclick="CancelEdit">Avbryt</button>
+	</EditForm>
+	<br />
+}
+
 @* Shows the games *@
 @if (error is not null)
 {
-    <p style="color:red">@error</p>
+	<p style="color:red">@error</p>
 }
 
 @if (isLoading)
 {
-    <p>Laster spill...</p>
+	<p>Laster spill...</p>
 }
 else if (games is null)
 {
-    @* Hentingen feilet, feilmeldingen står over *@
+	@* Hentingen feilet, feilmeldingen står over *@
 }
 else if (!games.Any())
 {
-    <p>Det finnes ingen spill i samlingen.</p>
+	<p>Det finnes ingen spill i samlingen.</p>
 }
 
 
@@ -53,8 +77,7 @@ else
 				<th>Minimum spillere</th>
 				<th>Maksimum spillere</th>
 				<th>Kategori</th>
-				<th>Ny kategori</th>
-				<th>Lagre ny kategori</th>
+				<th>Endre</th>
 				<th>Slett</th>
 			</tr>
 		</thead>
@@ -68,14 +91,13 @@ else
 					<td>@game.MinPlayers</td>
 					<td>@game.MaxPlayers</td>
 					<td>@game.Category</td>
-					<td><input value="@GetNewCategory(game.Id)" @oninput="e => newCategories[game.Id] = e.Value?.ToString() ?? string.Empty" /></td>
-					<td><button @onclick="() => Update(game.Id)">Lagre</button></td>
+					<td><button @onclick="() => StartEdit(game)">Endre</button></td>
 
 					<td>
 						@if (gameToDelete == game.Id)
 						{
 							<p>Er du sikker på at spillet skal slettes?</p>
-							<button class="btn btn-danger" @onclick="()=> Delete(game.Id)">Ja, slett</button>
+							<button class="btn btn-danger" @onclick="() => Delete(game.Id)">Ja, slett</button>
 							<button class="btn btn-secondary" @onclick="() => gameToDelete = null">Avbryt</button>
 						}
 						else
@@ -109,13 +131,13 @@ else
 
 			error = null;
 		}
-		catch 
+		catch
 		{
 			error = $"Kunne ikke hente spillet ";
 		}
 		finally
 		{
-        isLoading = false;
+			isLoading = false;
 		}
 	}
 
@@ -171,41 +193,52 @@ else
 
 
 
-	private readonly Dictionary<int, string> newCategories = new();
+	// The id of the game being changed. Null when the edit form is hidden
+	private int? editingGameId;
+	private UpdateGameRequest EditGame { get; set; } = new();
 
-	private string GetNewCategory(int id) =>
-	newCategories.TryGetValue(id, out var category) ? category : string.Empty;
-
-	private async Task Update(int id)
+	// Fills the edit form with the current values of the game
+	private void StartEdit(BoardGame game)
 	{
-		var category = GetNewCategory(id);
-
-		if (string.IsNullOrWhiteSpace(category))
+		editingGameId = game.Id;
+		EditGame = new UpdateGameRequest
 		{
-			error = "Kategori må fylles ut";
+			Name = game.Name,
+			Category = game.Category,
+			MinPlayers = game.MinPlayers,
+			MaxPlayers = game.MaxPlayers
+		};
+	}
+
+	private void CancelEdit() => editingGameId = null;
+
+	private async Task SaveEdit()
+	{
+		if (editingGameId is not int id)
 			return;
-		}
 
 		try
 		{
-			var updated = await ApiClient.UpdateCategoryAsync(id, new UpdateCategoryRequest { Category = category });
+			var updatedGame = await ApiClient.UpdateGameAsync(id, EditGame);
 
-			// Clears the input field for this row
-			newCategories.Remove(id);
+			editingGameId = null;
 
-			// Relods the games
-			await LoadGames();
-
-			// Set after LoadGames, which clears error
-			if (!updated)
+			if (updatedGame is null)
 			{
+				// The game was deleted in the meantime, so it is removed from the list as well
+				games = games?.Where(g => g.Id != id).ToList();
 				error = "Spillet finnes ikke lenger";
+				return;
 			}
+
+			// Replaces only the changed game in the list, instead of fetching all games again
+			games = games?.Select(g => g.Id == id ? updatedGame : g).ToList();
+			error = null;
 		}
 
 		catch
 		{
-			error = "Kunne ikke oppdatere kategori";
+			error = "Kunne ikke oppdatere spillet";
 		}
 	}
 
