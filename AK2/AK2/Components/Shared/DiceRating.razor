@@ -13,8 +13,12 @@
 
 @if (ReadOnly == false)
 {
-	<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
-	<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+	<p>Terning skal trilles for spillet 😊</p>
+
+	<div>
+		<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
+		<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+	</div>
 
 	@if (validationMessage is not null)
 	{
@@ -22,10 +26,6 @@
 	}
 }
 
-@if (ReadOnly == false)
-{
-	<p>Terning skal trilles for spillet 😊</p>
-}
 
 
 @code {
