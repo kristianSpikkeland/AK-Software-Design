@@ -11,10 +11,9 @@ namespace AK2.ServerService
     public sealed class ServerGamesService(GamesStorageAndQuery query)
     {
 
-        public async Task CreateGameAsync(CreateGameRequest request)
+        public async Task<GameDTO> CreateGameAsync(CreateGameRequest request)
         {
             // Adds validation
-
             if (string.IsNullOrWhiteSpace(request.Name))
             {
                 // Throw returns automaticly
@@ -32,8 +31,9 @@ namespace AK2.ServerService
             }
 
             // If all validation passes, then its safe to call the data layer
-            await query.CreateGameAsync(request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
+            var game = await query.CreateGameAsync(request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
 
+            return ToDto(game);
         }
 
         public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
