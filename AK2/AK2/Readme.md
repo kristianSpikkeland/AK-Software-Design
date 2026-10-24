@@ -806,7 +806,7 @@ Kunne ha startet et nytt prosjekt på riktig måte og kopiert over, men da ville
 For ryddighetens skyld laget jeg en mappe med navn Client der klient kode skal ligge. 
 
 ServerGamesService er en klasse som funker som et Service lag mellom dataen min og klienten.
-Vi vil unngå at datakilden får ugyldige data. Det er derfor lagt til validering her i tillegg til på client siden. Data på klientsiden kan manipuleres. Derfor er det viktig at serversiden også har validering. 
+Vi vil unngå at datakilden får ugyldige data. Det er derfor lagt til validering her i tillegg til på klient siden. Data på klientsiden kan manipuleres. Derfor er det viktig at serversiden også har validering. 
 Sensitive data skal aldri plasseres på klientsiden. 
 Selvom koden og API kallene blir noe konstruert i dette tilfellet vil API allikevell kunne retteferdigjøres om man tenker at det skal snakke med flere klienter. 
 
@@ -935,6 +935,25 @@ Valgte heller å lage to oppdateringspunkter for å spare tid samt at flere punk
 Videre vil ikke en endring der man samler oppdateringen til et punkt påvirke sluttbrukerens opplevelse negativt. Men flere endepunkter vil kunne kreve mer vedlikehold av koden. 
 Men tipset fra KI er absoulutt jeg tar med meg til neste prosjekt om det passer inn.  
 
+Senere laget jeg et diagram rundt flyten for opprettelse av spill. Under drøftinger med KI fikk jeg beskjed om at jeg ikke returnerer spill slik som oppgaveteksten krever.
+Sjekket med oppgavetekst og innså at det var en feil. Fikk også forklart at koden min er ueffektiv og det blir veldig mange spill etterhvert siden alle spill hentes på nytt etter opprettelse og oppdatering.
+Likte ikke helt tanken på mangler i forhold til oppgavetekst samt kode som ikke er egnet for mange spill. Det med mange spill er nok ikke en reel problemstilling i dette caset,
+men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om ombygging som jeg fulgte. Denne instruksjen legger også til et endepunkt for "hele spillet".
+Har satt hele i hermetegn siden jeg gjerne skulle laget en egen plass de admin skriver beskrivelse for spillet. Men dette ble det ikke tid til/prioritert. Tegninger av sidene var hentet ut på dette stadie.
+Se vedleggsmappa og Ombygging-retur-av-spill-POST-og-PUT.pdf 
+
+Etter denne ombyggingen hadde jeg på følelsen at Rating hentingen kunne forenkles og kjørte propmten:
+
+Kan man bygge om hentingen av rating med API enklere nå etter at det nye oppdateringspunktet er lagret. Er det lurt?
+
+Svar: Kort oppsummert kunne API kallene for spillhylla blitt betydelig færre. DiceRating tar ikke imot API kall noe som må sies å være en fordel da dette er en enkel komponent.
+
+Anser det egentlig som en godt endring, men velger å la den ligge. Hadde gjort endringen om kode skulle ut i produksjon. Legger ved en ombyggingsinstruks for min egen del kalt: Ombygging-totalvurdering-i-GameDTO.pdf
+
+Drøftet litt rundt PlayTimeMinutes. 
+Der gikk jeg for en variant som viser faktisk spilltid i forhold til registrering ved knappetrykk. Men fikk beskjed av KI om at det sannsynligvis skulle være et estimat.
+Det hadde jo vært betydelig enklere om man hadde tolket det slik fra starten :) Hadde spart meg for en del tid. 
+
 Begynte å implementere logikk for totalvurdering. Laget en egen liste for totalvurdering i datalaget og metode for å hente ut totalvurdering av id. 
 I domene klassen la jeg til en teller som teller oppover for hver gang en vurdering blir laget. 
 På serversiden i klassen ServerGamesService returnerte jeg bare direkte fra datalaget. Så blir egentlig bare et unødvendig ledd, men lot det gå da man kan bygge opp med mer logikk senere.
@@ -945,7 +964,7 @@ Da man skulle kjøre på nytt opplevde man en rekke feilmeldinger. Kanskje ikke 
 
 Men reagerte sterkt da det var snakk om en feilmedling helt tilbake i datalaget. KI ville flytte listen for vurdering tilbake til domene klassen.
 Sa blankt nei. Jeg ville skille disse lagene fra hverandre. Fikk hjelp med å skrive om logikken riktig, men prinsippet ble helt likt. Feilen var at jeg burde hente ut verderingen for et spill før jeg delte på antallet vurderinger.
-Hadde faktisk klart å glemme å legge til rating for listen også. Hjelper lite å bare lagre id :) Var også litt feil med hvordan jeg hentet id i komponenten, kunne bare bruke boardgame istedenfor å lage et nytt private felt for id.
+Hadde faktisk klart å glemme å legge til rating for listen (tupple) også. Hjelper lite å bare lagre id :) Var også litt feil med hvordan jeg hentet id i komponenten, kunne bare bruke boardgame istedenfor å lage et nytt private felt for id.
 
 I forhold til komponenten DiceRating og siden GamesDetails forsøkte jeg først selv. Men fikk ikke endringen av samelt rating til å bli live oppdatert. 
 Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på hva jeg hadde gjort feil.
@@ -1180,17 +1199,6 @@ private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
 For dokumentasjon av sideoversikt samt kompoenttre valgte jeg å hente ut tegninger. Se vedleggsmappen, mappen Egendokumentasjon og dokumentet "Sideoversikt og komponenttre.pdf".
 For dataflyt dokumentasjon se vedleggsmappen og dokument med navn "Sekvensdiagram spillopprettelse"
 
-Videre laget jeg et diagram rundt flyten for opprettelse av spill. Under drøftinger med KI fikk jeg beskjed om at jeg ikke returnerer spill slik som oppgaveteksten krever.
-Sjekket med oppgavetekst og innså at det var en feil. Fikk også forklart at koden min er ueffektiv og det blir veldig mange spill etterhvert siden alle spill hentes på nytt etter opprettelse og oppdatering.
-Likte ikke helt tanken på mangler i forhold til oppgavetekst samt kode som ikke er egnet for mange spill. Det med mange spill er nok ikke en reel problemstilling i dette caset,
-men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om ombygging. Se vedleggsmappa og Ombygging-retur-av-spill-POST-og-PUT.pdf 
-
-Drøftet litt rundt PlayTimeMinutes. 
-Der gikk jeg for en variant som viser faktisk spilltid i forhold til registrering ved knappetrykk. Men fikk beskjed av KI om at det sannsynligvis skulle være et estimat.
-Det hadde jo vært betydelig enklere om man hadde tolket det slik fra starten :) Hadde spart meg for en del tid. 
-
-
-
 
 ### Manuell testlogg 
 #### For oppgave 2
@@ -1320,6 +1328,7 @@ Fikk ChatGPT til å lage et bilde til forsiden. En del prompt frem og tilbake f�
 Mye sparring frem og tilbake under lagingen av diagrammer for å sikre at man forstod ting riktig. Fikk et veldig fint eksempel på sekvensdiagram som viste helen flyt fra bruker klikker via http og tilbake.
 Mitt sekvensdiagram er sterkt påvirket av eksempelet man fikk, men likte det veldig godt. Ryddig å få et overblikk over dataflyten. 
 
+
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
 * Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
@@ -1331,7 +1340,9 @@ Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. 
 Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
 Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort.
 Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :)
-
+Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. 
+Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. 
+Totalt sett har man gjort mye feil, men det er vell faktisk det jeg har lært mest av :)
  
 # Andre kilder
 Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
