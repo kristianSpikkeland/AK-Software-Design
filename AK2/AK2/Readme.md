@@ -387,6 +387,87 @@ Fikk til svar:
 <ValidationMessage For="..." /> viser feilene for ett felt, typisk rett under det feltet.
 <ValidationSummary /> viser alle feilene samlet i én liste.
 
+Mye senere fikk jeg beskjed av KI om at Rating var satt feil i forhold til oppgavetekst. 
+Jeg hadde satt direkte: 
+```
+<p>Din vurdering: @BoardGame.Rating</p>
+```
+
+Problemet med det er at DiceRating endrer sin egen parameterverdi direkte og ikke melder ny verdi til forelderen gjennom ValueChanged.
+På dette stadiet var jeg ferdig med API delen av oppgaven. Derfor kan koden vist under avvike noe med det som er forventet på dette stadie.
+
+Prompt: 
+I forhold til DiceRating og oppfyllelse av oppgavetekst. Kan jeg flytte EditForm fra GamesDetails til Dice rating. Også legge inn Rating som et parameter. Er det fornuftig? Hva er beste løsning som krever minst mulig endring for å oppfylle oppgavetekst.
+
+Svar:
+
+Ja, det er fornuftig, og det er den løsningen som krever minst endring.
+
+Ikke lag en egen Rating-parameter. Bruk Value.
+Oppgaven krever parameterne Value og ValueChanged, og @bind-Value virker bare med akkurat de navnene.
+Value er terningkastet. En Rating ved siden av ville gjort det samme, og gjort det uklart hvilken som gjelder.
+
+Bruk et vanlig <input>, ikke EditForm.
+EditForm trenger en modell, og den eneste modellen DiceRating har, er Value, som komponenten ikke får lov til å endre.
+Komponenten endrer kopien, og sender den opp med ValueChanged når brukeren klikker «Lagre».
+
+DiceRating.razor
+Bytt <p>Din vurdering: @BoardGame.Rating</p> og @if (ReadOnly == false)-blokken med:
+
+```C#
+<p>Din vurdering: @Value</p>
+
+@if (ReadOnly == false)
+{
+	<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
+	<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+
+	@if (validationMessage is not null)
+	{
+		<p style="color:red">@validationMessage</p>
+	}
+}
+```
+
+I @code, bytt public event Action? OnChange; med:
+```C#
+// Local copy, so the component never changes its own Value parameter
+private int newValue;
+private string? validationMessage;
+
+protected override void OnParametersSet() => newValue = Value;
+
+private async Task SaveAsync()
+{
+	if (newValue is < 1 or > 6)
+	{
+		validationMessage = "Terningkastet må være fra 1 til 6";
+		return;
+	}
+
+	validationMessage = null;
+
+	// Tells the parent about the new value
+	await ValueChanged.InvokeAsync(newValue);
+}
+```
+Totalvurderingen og RefreshTotalAsync står som før.
+
+
+GamesDeatials.razor
+Bytt DiceRating-linjen og hele EditForm med:
+```C#
+<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false"
+			@bind-Value="game.Rating" @bind-Value:after="UpdateRating" />
+```
+
+@bind-Value setter game.Rating når DiceRating sier fra, og @bind-Value:after kaller UpdateRating etterpå, som lagrer via API-et og oppdaterer totalen. UpdateRating er uendret.
+
+
+GameCard.razor
+```
+<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
+```
 
 ## Oppgave 3
 La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
