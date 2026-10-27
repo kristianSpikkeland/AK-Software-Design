@@ -144,6 +144,19 @@ Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de
 Noe hjelp med tester. Hadde en tanke om å ta en liste for filteret og en liste for alle spill og sammenligne innhold.
 Etter litt chatting fikk jeg beskjed om at det var et blindspor. Valgte heller å bruke assert.Empty();
 
+Mot slutten av arbeidet med oppgaven ønsket man å legge til det filteret for antall spillere. Likte i utgangspunktet det første filteret mitt veldig godt, men innser at det har begrensninger.
+Man kan ikke søke opp både spillnavn og antall spillere og få et kombinert resultat. Forsøkte litt først selv uten hell. Hadde riktignok noe begrenset med tid på dette tidspunktet.  
+
+Kjørte deretter prompten:
+Ønsker et filter som kun sorterer på antall spillere. Det er viktig at filtrene skal kunne kombineres i visningen.
+Det vil si at om brukeren skriver M i det eksisterende feltet og skriver 5 (spillere) i det nye feltet så skal bare spill som begynner med M og har antall spillere i det intervallet vises.
+Ønsker allikevell mest mulig løs kobling som vil si at filtrene skal være minst mulig avhengig av hverandre.
+Ønsker ikke å endre på eksisterende tester om det er praktisk mulig. Lag en pedagogisk PDF som viser endringene.
+
+Svar: Se vedleggsmappen og dokument med navn: Kombinert-filter-navn-og-spillere.pdf
+
+Likte koden. Var slik jeg hadde tenkt det. Slet selv litt med tanken rundt kombinering av filtrene men det med å bare ta listen fra spillnavn filteret og bruke det videre i antallspillere filteret var en grei løsning.
+
 ## Oppgave 2
 Prompt: Hvordan henger EditForm sammen med Value og ValueChanged?
 
@@ -1208,7 +1221,35 @@ Ble en del frem og tilbake før man hadde skjønt opplegget. Ba Claude om å byg
 
 Se vedleggsmappen etter dokument bUnit-test-av-ValueChanged-med-feil.pdf
 
-### Manuell testlogg 
+### Manuell testlogg
+#### For oppgave 1
+Noen av disse testene er også implemetert som automatiske tester.
+
+Testtilfelle: Søk etter et spill som ﬁnnes
+Steg: Bruk små og store bokstaver
+Forventet resultat: Det funker med begge deler
+Faktisk resultat: Som forventet
+
+Testtilfelle: Søk etter noe som ikke ﬁnnes
+Steg: Sjekk resultat
+Forventet resultat: Spiller gis beskjed om at det var ingen treff
+Faktisk resultat: Som forventet
+
+Testtilfelle: Test grenseverdiene i spillerﬁlteret
+Steg: Sjekk med flere verdier om filteret stemmer
+Forventet resultat: Filteret filtrer riktig 
+Faktisk resultat: Som forventet
+
+Testtilfelle: Kombiner søk og ﬁlte
+Steg: Kontroller at antall treﬀ stemmer.
+Forventet resultat: Antall treff stemmer
+Faktisk resultat: Som forventet
+
+Testtilfelle: Tøm søkefelt
+Steg: Kontroller at hele samling vises
+Forventet resultat: Hele samling vises
+Faktisk resultat: Som forventet
+
 #### For oppgave 2
 Testtilfelle: Åpne /games/ID
 Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
