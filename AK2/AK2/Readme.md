@@ -1212,6 +1212,33 @@ private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
 For dokumentasjon av sideoversikt samt kompoenttre valgte jeg å hente ut tegninger. Se vedleggsmappen, mappen Egendokumentasjon og dokumentet "Sideoversikt og komponenttre.pdf".
 For dataflyt dokumentasjon se vedleggsmappen og dokument med navn "Sekvensdiagram spillopprettelse"
 
+#### Ansvarsliste
+##### Komponenter
+DiceRating: Har ansvar for å vise totalvurderung av spillet. Henter dette per dags selv via API (kanskje litt uryddig). Videre skal komponenten ta input for terningkast og vise terningkast. Selve verdien blir satt i foreldrene GameCard og GamesDetails. 
+GameCard: Har ansvar for å vise informasjon om spillet og har tilhørende css som gir et ryddig intrykk.
+GameBadge: Viser totalt antall spill som er lagt til i spillkveld og tilstanden overlever navigasjon mellom sider. Implementert i NavMenu.
+GameNightButton: Har ansvar for å vise knappen "Legg i spillkveld" eller knappen "Fjern fra spillkveld" alt etter verdien for parameteret IsSelected. Har EventCallback parameter for OnAdd og OnRemove der det er forelderen GameDetails som styrer logikken rundt metodene. GameCard sender parameterne videre til Games som styrer logikken rundt disse metodene.  
+StartStopGame: Har knapper for å starte og stoppe spill. Viser spilletid per spill. Har EventCallback parameter med navn OnGameEnded som brukes for GameNightPage komponenten til å tegne siden på nytt med StateHasChanged. Injecter GameNightState og bruker metoder derfra for å starte og stoppe spill.
+NavMenu: En sidemeny som har direktelenke til sidene i menyen. Viser GameBadge. Lagt til i MainLayout for å vises på alle sider.
+
+##### Sidekomponenter
+Games
+GamesDetails
+GameNightPage
+AdminGames
+Home
+NotFound: Vises ved ugyldig nettadresse
+
+##### Tjenester
+GameNightState: En veldig viktig tjeneste som holder tilstanden til spillkvelden og har sin egen uavhengige BoardGame liste. Injectes i en rekke komponenter/sider.
+ServerGamesService: Er en klasse som snakker med datalaget og har valideringslogikk for å unngå at datalaget blir ødelagt av ugyldige data.
+DummyGames: Enkel klasse som kaller datalaget direte og beriker programmet med 8 spill fra start. 
+GamesStorageAndQuery: Selve datalaget. Snakker med sin egen liste, men den listen kunne like gjerne vært en database. Inneholder vanlige CRUD operasjoner. 
+GameApiClient: Klassen ligger på klientsiden og kaller API-et. En del til BoardGame konvertering grunnet komponenter som bruker BoardGame og ikke DTO objekter.
+
+Litt rådføring med KI rundt hva som regnes som komponent. Trodde ikke sidene blie regnet som komponent, men det gjør de vist. Valgte å ikke skrive noe om ansvar for sidene da dette fremkommer av tegningene.
+
+### bUnit
 Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfro å få KI til å lage en instruks til meg.
 Prompt: Gi meg et enkelt og pedagogisk eksempel på hvordan man kan teste komponenter med bUnit. 
 Gi meg et eksempel som tester at en komponent sender riktig verdi gjennom ValueChanged. Lever som PDF
@@ -1376,7 +1403,7 @@ Oppgaven krevde en del ombygninger underveis grunnet blant annet endring til API
 Fikk ChatGPT til å lage et bilde til forsiden. En del prompt frem og tilbake før man var fornøyd. Fikk hjelp til hvordan man setter inn bilde og tilhørende css.
 Mye sparring frem og tilbake under lagingen av diagrammer for å sikre at man forstod ting riktig. Fikk et veldig fint eksempel på sekvensdiagram som viste helen flyt fra bruker klikker via http og tilbake.
 Mitt sekvensdiagram er sterkt påvirket av eksempelet man fikk, men likte det veldig godt. Ryddig å få et overblikk over dataflyten. 
-
+Mye kvalitetskontroll av eget arbeid for å sikte forståelse og oppfylleslse av krav i oppgavetekst. 
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
