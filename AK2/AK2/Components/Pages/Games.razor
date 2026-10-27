@@ -9,7 +9,11 @@
 <h2>Brettspill</h2>
 
 <div class="search-box">
-	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" placeholder="Navn / antall spillere" />
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" 
+		placeholder="Navn" />
+
+	<input type="number" min="1" @bind="playerFilter" @bind:event="oninput" @bind:after="ApplyFilter"
+		   placeholder="Antall spillere" />
 </div>
 
 
@@ -70,6 +74,7 @@ else if (!filteredGames.Any())
 	private string? error;
 
 	string nameFilter = string.Empty;
+	int? playerFilter;
 
 	public BoardGame? randomGame;
 
@@ -102,7 +107,8 @@ else if (!filteredGames.Any())
 
 	private void ApplyFilter()
 	{
-		filteredGames = GameFilter.FilterGames(nameFilter, games).ToList();
+		var byName = GameFilter.FilterGames(nameFilter, games);
+		filteredGames = GameFilter.FilterByPlayers(playerFilter, byName).ToList();
 	}
 
 
