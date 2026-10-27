@@ -1199,6 +1199,14 @@ private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
 For dokumentasjon av sideoversikt samt kompoenttre valgte jeg å hente ut tegninger. Se vedleggsmappen, mappen Egendokumentasjon og dokumentet "Sideoversikt og komponenttre.pdf".
 For dataflyt dokumentasjon se vedleggsmappen og dokument med navn "Sekvensdiagram spillopprettelse"
 
+Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfro å få KI til å lage en instruks til meg.
+Prompt: Gi meg et enkelt og pedagogisk eksempel på hvordan man kan teste komponenter med bUnit. 
+Gi meg et eksempel som tester at en komponent sender riktig verdi gjennom ValueChanged. Lever som PDF
+
+Prøvde å skrive test for DiceRating etter samme mønster. Men fikk det ikke helt til. 
+Ble en del frem og tilbake før man hadde skjønt opplegget. Ba Claude om å bygge inn feilene mine og løsning i PDFen 
+
+Se vedleggsmappen etter dokument bUnit-test-av-ValueChanged-med-feil.pdf
 
 ### Manuell testlogg 
 #### For oppgave 2
