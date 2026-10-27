@@ -1,11 +1,11 @@
 ﻿
 @if (IsSelected)
 {
-    <button class="btn btn-outline-danger" @onclick="() => OnRemove.InvokeAsync(Game)">Fjern fra spillekveld</button>
+    <button class="btn btn-outline-danger" @onclick="() => OnRemove.InvokeAsync(Game)">Fjern fra spillkveld</button>
 }
 else
 {
-    <button class="btn btn-primary" @onclick="() => OnAdd.InvokeAsync(Game)">Legg til i spillekveld</button>
+    <button class="btn btn-primary" @onclick="() => OnAdd.InvokeAsync(Game)">Legg til i spillkveld</button>
 }
 
 @code {
