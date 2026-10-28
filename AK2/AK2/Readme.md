@@ -1,18 +1,19 @@
-﻿
-# Oppgave 1
+﻿# Arbeidskrav Software Design Kristian Spikkeland
 
-## Info 
-Siden games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
-GamesDetail viser detaljene for et spill. På games siden er det lagt til lenker som man kan klikke på for å komme til detaljene for et spill.
+## Oppgave 1
+
+### Info 
+Siden Games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
+GamesDetail viser detaljene for et spill. På Games siden er det lagt til lenker som man kan klikke på for å komme til detaljene for et spill.
 Grunnen til at jeg valgte å gjøre det slik var siden jeg har forsøkt å tenke på brukeren og at brukergrensesnittet skal være minimalistisk og ryddig. 
-På samme grunnlag er derfor filteret for antall spillere bakt inn sammen med navn filteret. 
+På samme grunnlag er derfor filteret for antall spillere bakt inn sammen med navn filteret. Dette ble senere endret til to filtere for å oppfylle krav i oppgaveteksten. 
 Videre har man tenkt en del rundt hvordan man kan lage en løsning som skalerer. Det å bare ha en GamesDetails side istedenfor en side per spill
 har jeg ansett som gunstig. 
 
-## KI bruk
+### KI bruk
 * Noe debugging av egenskrevet Linq spørring.
 * En prompt: Beste måte for å generere stigende Id enkelt med konstruktør i C# klasse.
-* Brukte IEnumerable<BoardGame> games = gamesQuery.GetAllGames() direkte. Fikk beskjed om at man må bruke OnInitialized metode.
+* Brukte IEnumerable<BoardGame> games = gamesQuery.GetAllGames() direkte. Fikk beskjed om at man må bruke OnInitialized metode for oppdatering.
 * Fikk en lang feilmelding om at noe var galt første gang jeg kjørte programmet. Det viste seg at jeg hadde registrert en service
 som var avhengig av en annen Service som ikke var registrert. Løsningen ble naturligvis å registrere denne servicen også.
 *Fikk en ny feilmelding der det viste seg at jeg hadde glemt å bruke new og instansiere listen til brettspillene.
@@ -45,7 +46,7 @@ IEnumerable<BoardGame> FilteredItems
 ```
 
 Et spørsmål rundt om man burde bruke = new() for spill man søker etter i Games.razor.
-Fikk til svar at det skjuler feil og at det tryggeste er å la det være nullmed ? og heller gi brukeren beskjed  med eks: <p>Ingen spill funnet.</p>
+Fikk til svar at det skjuler feil og at det tryggeste er å la det være null med ? og heller gi brukeren beskjed  med eks: <p>Ingen spill funnet.</p>
 
 Prompt: Skal ha en knapp der hvor jeg får tilfeldig spill skrevet ut når bruker trykker på knapp. Da blir det kanskje litt feil å ha GetRandomGame metoden min i OnInitialized() metoden?
 Ja, det stemmer. OnInitialized() kjøres bare én gang når siden lastes, så der ville du fått ett tilfeldig spill som aldri endrer seg. Kallet skal ligge i en metode som knappen kjører ved klikk:
@@ -158,6 +159,7 @@ Svar: Se vedleggsmappen og dokument med navn: Kombinert-filter-navn-og-spillere.
 Likte koden. Var slik jeg hadde tenkt det. Slet selv litt med tanken rundt kombinering av filtrene men det med å bare ta listen fra spillnavn filteret og bruke det videre i antallspillere filteret var en grei løsning.
 
 ## Oppgave 2
+### KI bruk
 Prompt: Hvordan henger EditForm sammen med Value og ValueChanged?
 
 Svar: De er to forskjellige ting, men de bruker det samme mønsteret.
@@ -353,10 +355,10 @@ MainLayout.razor.css
 
 Videre ble jeg forklart at om en side ikke skal ha menyen kan man gi den en egen layout med @layout øverst på siden.
 
-Prompt: Har satt at bruker skriver inn i skjemaet et tall. Hvordan validere at det er mellom 1 og 6 og vise feilmelding om det er ugylidg verdi? 
+Prompt: Har satt at bruker skriver et tall inn i skjemaet. Hvordan validere at det er mellom 1 og 6 og vise feilmelding om det er ugylidg verdi? 
 Tenkte å bruke OnValidSubmit og koble den til en Save metode.
 
-Svar: Ja, OnValidSubmit er riktig valg. Den kalles bare når alt er gyldig, så Save trenger ikke sjekke noe selv. Du trenger tre ting:
+Svar: Ja, OnValidSubmit er riktig valg. Den kalles bare når alt er gyldig, så Save trenger ikke sjekke noe selv. Du trenger:
 
 1. Regelen på modellen;
 ```C#
@@ -485,9 +487,10 @@ GameCard.razor
 Egen kommentar
 Fordelen med endringen ble først og fremst at skjemaet ble flyttet ut av GamesDetails til komponenten.
 Dette gjør koden mer skalerbar om vi skulle hatt lagring av vurdering flere plasser.
-Liten betydning for GameCard da den bruker ReadOnly og ikke setter vurderinger.
+Liten betydning for GameCard da den bruker ReadOnly versjonen og ikke setter vurderinger.
  
 ## Oppgave 3
+### KI bruk
 La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
 
 Prompt: Sliter med at melding blir vist for alle spill og ikke kun spillet det gjelder. Hva er beste praksis?
@@ -536,7 +539,7 @@ I variant 2 leser kortet IsSelected og bestemmer selv om meldingen er «lagt til
 Da tar barnet en beslutning som tilhører forelderen, og det bryter med «data ned, hendelser opp».
 Dette svaret var som forventet :)
 
-Videre fikk jeg forlart:
+Videre fikk jeg forklart:
 Koden din lagrer valget som game.IsSelected på selve BoardGame-objektet. Det strider mot oppgave 3 på to måter:
 
 Spillekvelden skal ha ett hjem: GameNightState. Når «valgt» også ligger på spillet, har du to sannheter som kan komme ut av synk, for eksempel når du fjerner et spill fra spillekvelden.
@@ -547,6 +550,7 @@ Langt svar. Jeg hentet mye kode fra svaret. Se vedleggmappen og PDF dokument Gam
 
 Prompt: Tenker jeg skal lage en rød runding med svart tykk skrift som viser antall valgte spill til høyre i toppen av NavMenuen min. Hvordan gjør jeg det med html og css? Har laget en egen GameBadge.
 
+Svar:
 ```CSS
 .gameNight-badge {
     display: inline-flex;          /* sentrerer tallet */
@@ -724,7 +728,7 @@ Fikk også css av KI for game card:
 </div>
 ```
 
-Prompt: Skjønner ikke. Vis spillhylla i ca. 375 px og minst 1200 px bredde, og legg skjermbilder i README.md. Når jeg prøver med de faste verdiene så endres det jo når jeg zoomer
+Prompt: Skjønner ikke. Vis spillhylla i ca. 375 px og minst 1200 px bredde, og legg skjermbilder i README.md. Når jeg prøver med de faste verdiene så endres det jo når jeg zoomer.
 Svar: 
 Åpne spillhylla i Chrome eller Edge og trykk F12.
 Trykk Ctrl+Shift+M for å slå på device toolbar.
@@ -742,7 +746,7 @@ Fikk hjelp av KI med å pakke det inn i en html klasse og lage en tilhørende cs
 ### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
 Med lokal tilstand menes det som hører til en komponent. Et eksempel på lokal tilstand i min applikasjon er filteret i Games. Om jeg bytter fane og kommer tilbake til Games siden er filteret resettet.
-Et eksempel på visning av applikasjonstilstand er GameBadge. Denne overlever navigasjon mellom sidene uten at tallet blir resettet. Men det er GameNightState som har applikasjonstilstanden og dataen.  
+Et eksempel på visning av applikasjonstilstand er GameBadge. Denne overlever navigasjon mellom sidene uten at tallet blir resettet. Det er GameNightState som har applikasjonstilstanden og dataen knyttet til spillkveld.  
 
 Parametere og EventCallback funker ypperlig i barn foreldre forhold. Barnet definerer Parametre mens foreldre gir verdier ned til barnet som rapporterer tilbake med EventCallback. Foreldrene styrer hva som skjer.
 Et eksempel på det i egen applikasjon er GameNightButton knappen min som har EventCallback parametre OnAdd og OnRemove. Data sendes ned som verdier fra foreldrene Games og GamesDetails som har hver sin implementasjon av hva som skal skje. Knappen melder fra oppover når den trykkes.
@@ -753,9 +757,9 @@ Jeg har brukt det noe i forbindelse med tidligere prosjekt for å sende informas
 AddCascadingAuthenticationState()
 ```
 
-Tilstandstjenester registreres for klasser som skal holde på en tilstand i en gitt periode. Det er gunstig å bruke slike om flere komponenter skal bruke samme tjenesten. Slike klasser kan være injected (dependency injection) for at klasser eller sider kan bruke dem.
+Tilstandstjenester registreres for klasser som skal holde på en tilstand i en gitt periode. Det er gunstig å bruke slike om flere komponenter skal bruke samme tjenesten. Slike klasser kan være injected (dependency injection) for at klasser, sider og komponenter kan bruke dem.
 Et eksempel fra egen applikasjon er GamesStorageAndQuery. Levetiden er satt til Singleton som vil si at tilstanden eksisterer så lenge programmet kjører. Spillene kommer til å være delt for alle brukere av appen.
-Mens selve spillkvelden er unik for hver bruker. Så to brukere vil ikke dele samme spillkveld med mindre dem bruker samme maskin.
+Mens selve spillkvelden er unik for hver bruker (scoped GameNightState). Så to brukere vil ikke dele samme spillkveld med mindre dem bruker samme maskin.
 
 Et annet og kanskje bedre eksempel på tilstandstjeneste er GameNightState som bare skal overleve spillkvelden. Denne har fått scoped som tilstand som gjør at hver spiller får en unik spillkveld.
 Det er derimot verdt å vite at tilstanden er tapt om bruker refresher siden. Syntes det ble litt for dumt og spurte derfor Claude om hjelp. Etter litt drøftinger ble man klokere på hvordan man kunne gå frem.
@@ -804,17 +808,18 @@ private async Task HandleAdd(BoardGame g)
 ```
 
 Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og endringene i en fane blir oppdatert i de andre når siden refreshes.
+Om nettleser lukkes og åpnes igjen så er tilstanden fortsatt lagret.
 
 ## Oppgave 4
-Angret stort på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
+Angret litt på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
 Da er det enklere å demonstrere faktisk bruk av APIer istedenfor den løsningne jeg startet på der alt ligger på server siden.
-En annen fordel med webassembly er at spillkvelden kan kjøres uten internett tilgang. 
+En annen fordel med WebAssembly er at spillkvelden kan kjøres uten internett tilgang. Dette gjelder selvsagt om man ikke bruker API-er for applikasjonen.  
 Ulempen med WebAssembly er at det tar litt tid første gang man starter siden mye skal lastes ned i nettleseren.
 Det er derfor Microsoft har lagt til en Auto variant som først kjører på serveren til deretter å bytte til klientsiden når alt er lastet ned og klart. 
 Da slipper brukeren å vente og føle at brukergrensesnittet ikke responderer.
 
 Fikk laget en KI instruks for ombygging til WebAssembly, men tok en vurdering av at det ble for omfattende. Nettleserlagringen måtte blant annet bli bygd om. Har prøvd en gang tidligere å bygge om, men det ble ingen suksess.
-Kunne ha startet et nytt prosjekt på riktig måte og kopiert over, men da ville mye av git historikken gått tapt. 
+Kunne ha startet et nytt prosjekt på riktig måte og kopiert over filer, men da ville mye av git historikken gått tapt. 
 
 For ryddighetens skyld laget jeg en mappe med navn Client der klient kode skal ligge. 
 
@@ -826,7 +831,8 @@ Selvom koden og API kallene blir noe konstruert i dette tilfellet vil API allike
 Gjorde GamesStorageAndQuery metodene mine asynkrone. Det er vanlig praksis når man snakker med database. Etter litt diskusjoner med KI så fant man ut at hensikten med å gjøre det for listen er liten.
 I verste fall blir programmet tregere. Men valgte å stå for den asynkrone varianten da man kan lage et interface og bytte ut listelagringen med en database senere.
 
-For å ha mer kontroll over dataene som blir sendt, valgte jeg å opprett GameDTO. Da sender man kun over de egenskapene som man selv ønsker.
+For å ha mer kontroll over dataene som blir sendt, valgte jeg å opprett GameDTO. Da sender man kun over de egenskapene som man selv ønsker. 
+Dette skulle senere by på problemer relatert til at komponenetene mine bruker BoardGame og ikke DTOer.
 
 For API delen av oppgaven skrev man opprinnelig mye av koden selv. Men trengte senere en del hjelp for å få implementert APIene i eksisterende kode (Games og GamesDetails). 
 Vedlegget: fra-blazor-server-til-interactive-auto-ren.md har vært en god hjelp under denne delen av oppgaven.
@@ -871,6 +877,8 @@ I tabellen skal jeg ha en kolonne der jeg skriver inn ny kategori og i kolonnen 
 Svar: Måtte endre en del filer som fortsatt hadde mangler selvom jeg hadde forsøkt etter samme mal som med slette apiet.
 Se vedleggmappen etter: KI-bruk-oppdatering-av-kategori.pdf
 
+Senere ble denne oppdateringen bygget om grunnet at jeg hadde mistolket kravene til oppdaterings API-et. 
+
 
 Videre fikk man litt hjelp med å sette opp HttpClienten
 
@@ -879,7 +887,7 @@ builder.Services.AddHttpClient<GameApiClient>(client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
 ```
 
-Legg adressen i appsettings.json:
+Adressen i appsettings.json:
 ```json
 {
   "ApiBaseUrl": "https://localhost:7259/",
@@ -893,8 +901,8 @@ Svar: Det vanlige er å ikke bruke EditForm til sletting. Legg heller en «Slett
 <td><button @onclick="() => Delete(game.Id)">Slett</button></td>
 ```
 
-Prompt: Har brukt Required og Range for å validere forespørsler med DataAnnotations. Men hvis man skal sammenlige og si at minimum ikke kan være større enn maksimum? 
-Hvordan gjøre det med  DataAnnotations.
+Prompt: Har brukt Required og Range for å validere forespørsler med DataAnnotations tidligere. Men hvis man skal sammenlige og si at minimum ikke kan være større enn maksimum? 
+Hvordan gjøre det med DataAnnotations.
 
 Svar: 
 Det finnes ikke et ferdig attributt for å sammenligne to felt. [Compare] sjekker bare om to felt er like, for eksempel passord og bekreftet passord.
@@ -920,7 +928,7 @@ Her er argumentasjonen jeg fikk:
 Én ting å tenke på: testene i Oppgave1.cs tester FilterGames i GamesStorageAndQuery. Flytter du filtreringen til komponenten, mister du disse testene, og oppgave 5 krever minst tre tester av logikk utenfor komponentene.
 Et vanlig grep er å flytte filtreringen og tilfeldig valg til en egen liten klasse som tar imot en liste spill og returnerer resultatet. Da kan spillhylla bruke den på lista fra API-et, og testene kan bruke den direkte.
 
-Synes dette virket ryddig. Hadde blitt litt uryddig å lage et API for å hente spillene for så å gå direkte til datakilden for å hente fileteret.
+Synes dette virket ryddig. Hadde blitt litt uryddig å lage et API for å hente spillene for så å gå direkte til "datakilden" for å hente fileteret.
 Begynte å injecte dette filteret i Games, men fikk råd om å heller bruke static for å slippe injecting og registrering i Program.cs.
 
 Havnet i en ny problemstilling der spillhylla og mange komponenter bruker BoardGame mens APIet bruker DTO. Drøftet litt med KI og vurderte rådene jeg fikk som stort sett fornuftige.
@@ -929,9 +937,10 @@ Men da man skulle begynne på ombyggingen reagerte man på at KI bare ville fjer
 Godtok det ikke og beholdt konstruktøren. Men Id genereringen ble flyttet ut fra konstruktøren. Grunnen til at konstruktør ble beholdt var for å gjøre minst mulig endring på eksisterende kode.
 Samtidig innser man at i en del tilfeller kan kode bli forenklet om konstruktør droppes og garantier for at egenskaper blir satt kan oppnås på annet vis en via konstruktør.
 
-
 Ba KI om å lage en instruks for ombygging:
 Se vedleggmappen etter: Ombygging-spillhylla-via-API.pdf
+
+Deler av koden måtte senere endres da man ble klar over at denne ombyggingen bommer noe på kravene i oppgavetekst. 
 
 Reagerte på valget om å gjøre GamesStorageAndQuery sin CreateGameAsync synkron. 
 Godtok det ikke og fikk forenklet koden ved at return Task.CompletedTask kunne fjernes fra forslaget
@@ -939,27 +948,26 @@ Godtok det ikke og fikk forenklet koden ved at return Task.CompletedTask kunne f
 I utgangspunktet liker jeg ikke den ekstra komplekisteten ved at klienten gjør om en DTO til BoardGame igjen. Den enkelste måten hadde vært å bare sende over BoardGame.
 For akkurat denne typen applikasjon anser jeg i ettertid at det sannsynligvis hadde vært beste løsning. 
 Velger å ikke gå tilbake på DTO designvalget da det er verdifull kunnskap å kunne arbeide med DTOer og få prosjekterfaring med slike objekter.
+Det å velge hvilke data som sendes har ofte en verdi.
 
 Under arbeidet med oppdatering av vurdering (rating) møtte man på enklete utfordringer knyttet til arkitektur. Jeg laget en egen UpdateRatingRequest og et eget endepunkt for oppdatering av rating.
 Uheldigvis hadde dette endepunktet samme adresse som det andre oppdateringspunktet for oppdatering av kategori så det funket dårlig.
 Fikk råd av KI om at man kan lage kun en UpdateGameRequest med flere egenskaper og slå sammen de to oppdateringsendepunktene. Ulempen da er at man i mange tilfeller sender over mer data enn man trenger.
-Vurderte rådet som fornuftig med tanke på forenkling av arkitektur men valgte å ikke implementere endringen da det medførte endringer i en del filer.
-Valgte heller å lage to oppdateringspunkter for å spare tid samt at flere punkter også har sine fordeler. Fikk intrykk av at det handler mye om kontroll av endringer.
-Videre vil ikke en endring der man samler oppdateringen til et punkt påvirke sluttbrukerens opplevelse negativt. Men flere endepunkter vil kunne kreve mer vedlikehold av koden. 
-Men tipset fra KI er absoulutt jeg tar med meg til neste prosjekt om det passer inn.  
+Vurderte rådet som fornuftig med tanke på forenkling av arkitektur men valgte å ikke implementere endringen i første omgang da det medførte endringer i en del filer.
+Valgte heller å lage to oppdateringspunkter for å spare tid samt at flere punkter også har sine fordeler. Det handler om kontroll over hvilke data som sendes og evt. om kontroll av endringer.
+Flere endepunkter vil kunne kreve mer vedlikehold av koden. 
 
 Senere laget jeg et diagram rundt flyten for opprettelse av spill. Under drøftinger med KI fikk jeg beskjed om at jeg ikke returnerer spill slik som oppgaveteksten krever.
-Sjekket med oppgavetekst og innså at det var en feil. Fikk også forklart at koden min er ueffektiv og det blir veldig mange spill etterhvert siden alle spill hentes på nytt etter opprettelse og oppdatering.
+Sjekket med oppgavetekst og innså at det var en feil. Fikk også forklart at koden min er ueffektiv om det blir mange spill, siden alle spill hentes på nytt etter opprettelse og oppdatering.
 Likte ikke helt tanken på mangler i forhold til oppgavetekst samt kode som ikke er egnet for mange spill. Det med mange spill er nok ikke en reel problemstilling i dette caset,
-men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om ombygging som jeg fulgte. Denne instruksjen legger også til et endepunkt for "hele spillet".
+men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om ombygging som jeg fulgte. Denne instruksjen legger også til et endepunkt for oppdatering av "hele spillet".
 Har satt hele i hermetegn siden jeg gjerne skulle laget en egen plass de admin skriver beskrivelse for spillet. Men dette ble det ikke tid til/prioritert. Tegninger av sidene var hentet ut på dette stadie.
 Se vedleggsmappa og Ombygging-retur-av-spill-POST-og-PUT.pdf 
 
 Etter denne ombyggingen hadde jeg på følelsen at Rating hentingen kunne forenkles og kjørte propmten:
-
 Kan man bygge om hentingen av rating med API enklere nå etter at det nye oppdateringspunktet er lagret. Er det lurt?
 
-Svar: Kort oppsummert kunne API kallene for spillhylla blitt betydelig færre. DiceRating tar ikke imot API kall noe som må sies å være en fordel da dette er en enkel komponent.
+Svar: Kort oppsummert kunne API kallene for spillhylla blitt betydelig færre. DiceRating trenger ikke å ta imot API kall noe som må sies å være en fordel da dette er en enkel komponent.
 
 Anser det egentlig som en godt endring, men velger å la den ligge. Hadde gjort endringen om kode skulle ut i produksjon. Legger ved en ombyggingsinstruks for min egen del kalt: Ombygging-totalvurdering-i-GameDTO.pdf
 
@@ -967,20 +975,20 @@ Drøftet litt rundt PlayTimeMinutes.
 Der gikk jeg for en variant som viser faktisk spilltid i forhold til registrering ved knappetrykk. Men fikk beskjed av KI om at det sannsynligvis skulle være et estimat.
 Det hadde jo vært betydelig enklere om man hadde tolket det slik fra starten :) Hadde spart meg for en del tid. 
 
-Begynte å implementere logikk for totalvurdering. Laget en egen liste for totalvurdering i datalaget og metode for å hente ut totalvurdering av id. 
+Begynte å implementere logikk for totalvurdering. Laget en egen liste for totalvurderinger i datalaget og metode for å hente ut totalvurdering av id. 
 I domene klassen la jeg til en teller som teller oppover for hver gang en vurdering blir laget. 
-På serversiden i klassen ServerGamesService returnerte jeg bare direkte fra datalaget. Så blir egentlig bare et unødvendig ledd, men lot det gå da man kan bygge opp med mer logikk senere.
+På serversiden i klassen ServerGamesService returnerte jeg bare direkte fra datalaget. Så blir egentlig bare et unødvendig ledd, men lot det gå da man kan bygge opp med mer logikk/validering senere.
 La til et endepunkt kalt apGet("{id:int}/totalRatingByGame" i program.cs. Videre la man til endepunktet på klientsiden. 
 Implementerte visning av Totalverdi i DiceRating komponenten. Måtte ha litt hjelp da man først ville kjøre en async metode i htmlen men KI sa at jeg måtte heller bruke livssyklusmetode og hente ut verdien som et parameter.
 
 Da man skulle kjøre på nytt opplevde man en rekke feilmeldinger. Kanskje ikke unaturlig da man haddde skrevet all koden selv. Fikk hjelp av KI til å rette feilene.
 
 Men reagerte sterkt da det var snakk om en feilmedling helt tilbake i datalaget. KI ville flytte listen for vurdering tilbake til domene klassen.
-Sa blankt nei. Jeg ville skille disse lagene fra hverandre. Fikk hjelp med å skrive om logikken riktig, men prinsippet ble helt likt. Feilen var at jeg burde hente ut verderingen for et spill før jeg delte på antallet vurderinger.
-Hadde faktisk klart å glemme å legge til rating for listen (tupple) også. Hjelper lite å bare lagre id :) Var også litt feil med hvordan jeg hentet id i komponenten, kunne bare bruke boardgame istedenfor å lage et nytt private felt for id.
+Sa blankt nei. Jeg ville skille disse lagene fra hverandre. Fikk hjelp med å skrive om logikken riktig, men prinsippet ble helt likt. Feilen var at jeg burde hente ut vurderingen for et spill før jeg delte på antallet vurderinger.
+Hadde faktisk klart å glemme å legge til rating for listen (tupple) også. Hjelper lite å bare lagre id :) Kunne vurdert å bytte til Dictionary for kjappere oppslag, men lot den ligge. Var også litt feil med hvordan jeg hentet id i komponenten, kunne bare bruke boardgame istedenfor å lage et nytt private felt for id.
 
 I forhold til komponenten DiceRating og siden GamesDetails forsøkte jeg først selv. Men fikk ikke endringen av samelt rating til å bli live oppdatert. 
-Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på hva jeg hadde gjort feil.
+Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på hva jeg hadde gjort feil. Se vedleggsmappen og: Totalvurdering-live-med-ref.pdf
 
 Ønsket senere å ha totalvurderingen som desimaltall og fikk hjelo av KI til å se alle stedene som måtte endres.
 
@@ -1024,10 +1032,10 @@ Fikk også litt hjelp med riktig rekkefølge for brukermeldinger samt en valider
 Testet det, men det funket ikke.
 Fikk Claude til å formulere hva som ble gjort da jeg er på noe tynn is akkurat her:
 
-Måtte legge til innhold i 404-svarene i Program.cs. Uten innhold kjørte UseStatusCodePagesWithReExecute forespørselen på nytt mot /not-found, som ikke godtar DELETE, og klienten fikk 405. 
+Legg til innhold i 404-svarene i Program.cs. Uten innhold kjørte UseStatusCodePagesWithReExecute forespørselen på nytt mot /not-found, som ikke godtar DELETE, og klienten fikk 405. 
 Da viste adminsiden «Sletting av spill feilet». Med innhold får klienten 404, og siden viser «Spillet var allerede slettet».
 
-Konkret ble eks:
+Konkret ble eksempelvis:
 ```C#
 return deleted ? Results.NoContent() : Results.NotFound();
 ```
@@ -1080,7 +1088,7 @@ Den kodelinjen sørger for at informasjon om spillkvelden blir oppdatert live om
 
 
 Når adressen endres på spillsiden så blir innholdet byttet ut med OnParametesSetAsync. Navnet forklarer egentlig hva denne livssyklusen gjør. 
-Når verdien for Id endrer seg skal oversiken endres. Hvis man går inn og ut av siden lages det faktisk også en ny instans av komponenten. 
+Når verdien for Id endrer seg skal oversiken endres. Hvis man går inn og ut av siden lages det faktisk også en ny instans av komponenten (ref Claude). 
 
 ```C#
 	protected override async Task OnParametersSetAsync()
@@ -1113,7 +1121,7 @@ Når verdien for Id endrer seg skal oversiken endres. Hvis man går inn og ut av
 
 Man kunne ha laget en side for hvert spill, men da skalerer koden dårlig. OnParametersSetAsync gjør at innhold oppdaters nå komponenten gjenbrukes.
 Hadde vi brukt OnInitializedAsync ville ikke metoden kjørt på nytt om Id endret seg.
-Siden vi gjenbruker komponenten må error, isLoadding og game settes tilbake i metodene. Hvis ikke vil de gamle verdien henge igjen.
+Siden vi gjenbruker komponenten må error, isLoadding og game settes tilbake i metodene. Hvis ikke vil de gamle verdien henge igjen og brukeropplevelsen blir dårlig.
 Det er koden under som fakisk gjør at vi kan bytte id i urlen. Men det er OnParametersSetAsync som faktisk bytter innholdet som vises på skjermen.
 ```C#
 @page "/games/{Id:int}"
@@ -1143,10 +1151,10 @@ Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunn
 
 
 #### Gjengivelsesmetode for applikasjonen
-Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly 
+Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly for å ha en tydligere klientside, 
 eller i mange tilfeller enda bedre Interactive Auto grunnet muligheten for interaktrivitet på siden frem til WebAssembly-filene er lastet ned.
-Trodde egentlig at det bare gjaldt visningen men KI påstår at siden kan bli interkativ. Altå at den reagerer på klikk og slikt. Virker jo utrolig bra :)
-En fordel med Interactive Server er at prosjektet blir noe enklere i oppsettet fra starten og naturligvis at sidene kan være interaktive og gi god brukeropplevelse
+Trodde egentlig at det bare gjaldt visningen men KI påstår at siden kan bli interkativ mens nedlasting pågår. Altå at den reagerer på klikk og slikt. Virker jo utrolig bra :)
+En fordel med Interactive Server er at prosjektet blir noe enklere i oppsettet fra starten og naturligvis at sidene kan være interaktive og gi god brukeropplevelse.
 i motsetning til SSR som gir statiske sider. I 2026 krever brukeren mer enn på 90 tallet.   
 
  
@@ -1156,9 +1164,10 @@ Badgen kan reagere på OnChange om Interactive Server er global, men med interak
 Layouten er foreldre til menyen så om layouten er statisk blir alt i menyen statisk. 
 
 ### Hvor koden kjører
-Koden kjører på serveren og siden det er på prerendring slik som jeg så med det doble API kallet så blir hele den første siden sendt første gang.
-Det som er litt kunstig siden vi ikke har en reel grunn med dette prosjektet er at klienten også ligger på serversiden og kaller APIet. Den kunne vært flyttet til nettleseren med WebAssembly.
+Koden kjører på serveren og siden det er på prerendring, slik som jeg så med det doble API kallet, så blir hele den første siden sendt første gang.
+Det som er litt kunstig siden vi ikke har en reel grunn  til det for dette prosjektet er at klienten også ligger på serversiden og kaller APIet. Den kunne vært flyttet til nettleseren med WebAssembly.
 Ved endringer blir ofte kun den ene tingen byttet ut istedenfor at hele siden lastes som med klassisk MVC.
+
 Så for å oppsummere så ligger koden på serversiden. Nettleseren rendrer HTML og holder på SignalR forbindelsen i tillegg til å lagre data relatert til spillkvelden med ProtectedLocalStorage.
 Ble bevist på av KI at lagringen i nettlesten er kryptert og at det er serveren som gjør spillkvelden om til JSON krypterer den og ber nettleseren om å lagre den. 
 Videre ble jeg forklart at ved oppstart ber serveren om teksten tilbake og dekrypterer den. Synes det var ganske interressant :)
@@ -1166,7 +1175,7 @@ Men antar at denne krypteringen i nettleseren kan knekkes ganske enkelt. Sensiti
 Rettelse: KI mener at denne krypteringen er vanskelig å knekke. Det gjenstår å se... 
 
 
-Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
+Viktig! Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
 
 ### Oppgave4 KI bruk tester
 Prompt: Hvordan stopper man et API. Bare kommentere det ut?
@@ -1234,7 +1243,7 @@ GameNightState: En veldig viktig tjeneste som holder tilstanden til spillkvelden
 ServerGamesService: Er en klasse som snakker med datalaget og har valideringslogikk for å unngå at datalaget blir ødelagt av ugyldige data.
 DummyGames: Enkel klasse som kaller datalaget direte og beriker programmet med 8 spill fra start. 
 GamesStorageAndQuery: Selve datalaget. Snakker med sin egen liste, men den listen kunne like gjerne vært en database. Inneholder vanlige CRUD operasjoner. 
-GameApiClient: Klassen ligger på klientsiden og kaller API-et. En del til BoardGame konvertering grunnet komponenter som bruker BoardGame og ikke DTO objekter.
+GameApiClient: Klassen ligger på klientsiden og kaller API-et. En del "til BoardGame konvertering" grunnet komponenter som bruker BoardGame og ikke DTO objekter.
 
 Litt rådføring med KI rundt hva som regnes som komponent. Trodde ikke sidene blie regnet som komponent, men det gjør de vist. Valgte å ikke skrive noe om ansvar for sidene da dette fremkommer av tegningene.
 
@@ -1262,7 +1271,7 @@ Men slik det er nå må man lage egne tester for hvert filter.
 
 
 ### bUnit
-Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfro å få KI til å lage en instruks til meg.
+Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfor å få KI til å lage en instruks til meg.
 Prompt: Gi meg et enkelt og pedagogisk eksempel på hvordan man kan teste komponenter med bUnit. 
 Gi meg et eksempel som tester at en komponent sender riktig verdi gjennom ValueChanged. Lever som PDF
 
@@ -1275,41 +1284,41 @@ Se vedleggsmappen etter dokument bUnit-test-av-ValueChanged-med-feil.pdf
 #### For oppgave 1
 Noen av disse testene er også implemetert som automatiske tester.
 
-Testtilfelle: Søk etter et spill som ﬁnnes
-Steg: Bruk små og store bokstaver
-Forventet resultat: Det funker med begge deler
-Faktisk resultat: Som forventet
+Testtilfelle: Søk etter et spill som ﬁnnes <br>
+Steg: Bruk små og store bokstaver <br>
+Forventet resultat: Det funker med begge deler <br>
+Faktisk resultat: Som forventet 
 
-Testtilfelle: Søk etter noe som ikke ﬁnnes
-Steg: Sjekk resultat
-Forventet resultat: Spiller gis beskjed om at det var ingen treff
-Faktisk resultat: Som forventet
+Testtilfelle: Søk etter noe som ikke ﬁnnes <br>
+Steg: Sjekk resultat <br>
+Forventet resultat: Spiller gis beskjed om at det var ingen treff <br>
+Faktisk resultat: Som forventet 
 
-Testtilfelle: Test grenseverdiene i spillerﬁlteret
-Steg: Sjekk med flere verdier om filteret stemmer
-Forventet resultat: Filteret filtrer riktig 
-Faktisk resultat: Som forventet
+Testtilfelle: Test grenseverdiene i spillerﬁlteret <br>
+Steg: Sjekk med flere verdier om filteret stemmer <br>
+Forventet resultat: Filteret filtrer riktig <br>
+Faktisk resultat: Som forventet 
 
-Testtilfelle: Kombiner søk og ﬁlte
-Steg: Kontroller at antall treﬀ stemmer.
-Forventet resultat: Antall treff stemmer
-Faktisk resultat: Som forventet
+Testtilfelle: Kombiner søk og ﬁlte <br>
+Steg: Kontroller at antall treﬀ stemmer <br>
+Forventet resultat: Antall treff stemmer <br>
+Faktisk resultat: Som forventet 
 
-Testtilfelle: Tøm søkefelt
-Steg: Kontroller at hele samling vises
-Forventet resultat: Hele samling vises
-Faktisk resultat: Som forventet
+Testtilfelle: Tøm søkefelt <br>
+Steg: Kontroller at hele samling vises <br>
+Forventet resultat: Hele samling vises <br>
+Faktisk resultat: Som forventet 
 
 #### For oppgave 2
-Testtilfelle: Åpne /games/ID
-Steg: Bruker en ID som ikke finnes, for eksempel /games/9999
-Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
-Faktisk resultat: Som forventet
+Testtilfelle: Åpne /games/ID <br>
+Steg: Bruker en ID som ikke finnes, for eksempel /games/9999 <br>
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke <br>
+Faktisk resultat: Som forventet <br>
 
-Testtilfelle: Åpne /games/ID
-Steg: Bruker en ID som er bokstaver, for eksempel /games/abc
-Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke.
-Faktisk resultat: Som forventet
+Testtilfelle: Åpne /games/ID <br>
+Steg: Bruker en ID som er bokstaver, for eksempel /games/abc <br>
+Forventet resultat: Man blir tatt til NotFound siden. Programmet krasjer ikke <br>
+Faktisk resultat: Som forventet <br>
 
 Adressen treffer ikke spillsiden siden at disse sidene tar kun ID med tall: 
 ```C#
@@ -1338,7 +1347,7 @@ Faktisk resultat: Som forventet
 
 #### For oppgave 3
 Testtilfelle: Legg til et spill fra spillhylla <br>
-Steg: kontroller at tallet i menyen øker <br>
+Steg: Kontroller at tallet i menyen øker <br>
 Forventet resultat: GameBadge øker <br>
 Faktisk resultat: Som forventet
 
@@ -1371,47 +1380,47 @@ Se slutten av dokumentet for skjermbilder av spillhylla i forskjellige bredder.
 
 #### For oppgave 4
 
-Testtilfelle: Stopp API-et
-Steg: Åpne spillhylle
-Forventet resultat: Appen viser feilmelding og krasjer ikke
-Faktisk resultat: Viser først Laster...  For deretter å bytte til meldingen: Kunne ikke hente spillene. Prøv igjen senere.
+Testtilfelle: Stopp API-et <br>
+Steg: Åpne spillhylle <br>
+Forventet resultat: Appen viser feilmelding og krasjer ikke <br>
+Faktisk resultat: Viser først Laster...  For deretter å bytte til meldingen: Kunne ikke hente spillene. Prøv igjen senere 
 
-Testtilfelle: Opprettelse spill
-Steg: Opprett spill med tomt navn
-Forventet resultat: Feilmelding vises
+Testtilfelle: Opprettelse spill <br>
+Steg: Opprett spill med tomt navn <br>
+Forventet resultat: Feilmelding vises <br>
 Faktisk resultat: Som foreventet. "Navn må fylles ut" vises med rød skrift 
 
-Testtilfelle: Opprettelse spill
-Steg: Opprett spill der MaxPlayers lavere enn MinPlayers
-Forventet resultat: Feilmelding vises
+Testtilfelle: Opprettelse spill <br>
+Steg: Opprett spill der MaxPlayers lavere enn MinPlayers <br>
+Forventet resultat: Feilmelding vises <br>
 Faktisk resultat. Som forventet. "Maksimum spillere kan ikke være lavere enn minimum" vises med rød skrift.
 
-Testtilfelle: Send ugyldige data rett fra API
-Steg: Kontroller svaret
-Forventet resultat: 400 
+Testtilfelle: Send ugyldige data rett fra API <br>
+Steg: Kontroller svaret <br>
+Forventet resultat: 400 <br>
 Faktisk resultat: Som forventet for alle 3 testtilfeller
 
-Testtilfelle: Endre et spil
-Steg: Kontroller spillhylla og spillsiden
-Forventet resultat: Begge viser endringen 
+Testtilfelle: Endre et spil <br>
+Steg: Kontroller spillhylla og spillsiden <br>
+Forventet resultat: Begge viser endringen <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Neste spill
-Steg: Bruker klikker på neste spill knapp
-Forventet resultat: Id parameter for adressen øker med en og neste spill vises om det finnes en høyere id (og spillet ikke er slettet). Om det ikke finnes høyere Id vises NotFound siden. 
+Testtilfelle: Neste spill <br>
+Steg: Bruker klikker på neste spill knapp <br>
+Forventet resultat: Id parameter for adressen øker med en og neste spill vises om det finnes en høyere id (og spillet ikke er slettet). Om det ikke finnes høyere Id vises NotFound siden. <br>
 Faktisk resultat: Som forventet
 
-Testtilfelle: Slett et spill som ligger i Min spillekveld
-Steg: Deﬁner og dokumenter hva som skal skje
-Forventet resultat: Spillet vises ikke lengre i spillkvelden
+Testtilfelle: Slett et spill som ligger i Min spillekveld <br>
+Steg: Deﬁner og dokumenter hva som skal skje <br>
+Forventet resultat: Spillet vises ikke lengre i spillkvelden <br>
 Faktisk resultat: Ikke som jeg forventet. Spillet ligger der fortsatt. Men synes egentlig ikke det gjør noe.
 Alle spillene for spillkvelden forsvinner i det jeg velger nullstill spillkveld. 
 Om admin driver å sletter spill mens noen stakkars spillere spiller dette spillet så er det bare bra om det ikke blir fjernet.
 I ettertid så gir oppførselen også mening da spillkvelden holder sin egen tilstand og har sin egen liste. 
 
-Testtilfelle: Feil url spillside
-Steg: Åpne spillsiden for en ID som API-et svarer 404 på
-Forventet resultat: NotFound siden vises med melding "Spillet finnes ikke, eller adressen er feil". 
+Testtilfelle: Feil url spillside <br>
+Steg: Åpne spillsiden for en ID som API-et svarer 404 på <br>
+Forventet resultat: NotFound siden vises med melding "Spillet finnes ikke, eller adressen er feil". <br> 
 Faktisk resultat: Som forventet. 
 
 ## Generell KI bruk
@@ -1426,7 +1435,8 @@ Oppgaven krevde en del ombygninger underveis grunnet blant annet endring til API
 Fikk ChatGPT til å lage et bilde til forsiden. En del prompt frem og tilbake før man var fornøyd. Fikk hjelp til hvordan man setter inn bilde og tilhørende css.
 Mye sparring frem og tilbake under lagingen av diagrammer for å sikre at man forstod ting riktig. Fikk et veldig fint eksempel på sekvensdiagram som viste helen flyt fra bruker klikker via http og tilbake.
 Mitt sekvensdiagram er sterkt påvirket av eksempelet man fikk, men likte det veldig godt. Ryddig å få et overblikk over dataflyten. 
-Mye kvalitetskontroll av eget arbeid for å sikte forståelse og oppfylleslse av krav i oppgavetekst. 
+Mye kvalitetskontroll av eget arbeid for å sikte forståelse og oppfylleslse av krav i oppgavetekst.
+Spore fremdrift. Hvor mange prosent som gjenstår for hver oppgave.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
