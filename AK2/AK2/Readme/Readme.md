@@ -22,7 +22,7 @@ Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokument
 
 ## Oppgave 1
 ### Siden
-![SpillhylleV2](Bilder/SpillhylleV2.png)
+![SpillhylleV2](../Bilder/SpillhylleV2.png)
 
 ### Info 
 Siden Games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
@@ -39,7 +39,7 @@ har jeg ansett som gunstig.
  
 ## Oppgave 3
 ### Siden
-![GamesDetails](Bilder/GamesDetails.png)
+![GamesDetails](../Bilder/GamesDetails.png)
 
 ### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
@@ -444,7 +444,7 @@ Steg: Tok skjermbilder av forskjellige skjermbredde
 Forventet resultat: Spillhylla kan brukes på både smal skjerm (mobil) og bred skjerm.
 
 ### Faktisk resultat 375 px: 
-![Spillhylla på 375 px](Bilder/375px.png)
+![Spillhylla på 375 px](../Bilder/375px.png)
 
 ### Faktisk resultat 1200 px:
-![Spillhylla på 1200 px](Bilder/1200px.png)
+![Spillhylla på 1200 px](../Bilder/1200px.png)
