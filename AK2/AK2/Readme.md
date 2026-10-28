@@ -1248,26 +1248,74 @@ GameApiClient: Klassen ligger på klientsiden og kaller API-et. En del "til Boar
 Litt rådføring med KI rundt hva som regnes som komponent. Trodde ikke sidene blie regnet som komponent, men det gjør de vist. Valgte å ikke skrive noe om ansvar for sidene da dette fremkommer av tegningene.
 
 ### Designvalg
-Valgte Interactive Server som gjengivelsesmodus. "Problemet" med denne modusen er at den bruker SignalR og er avhengig av nettverk.
-En annen løsning kunne vært Interactive Auto (Web Assembly) og man kunne kjørt programmet uten internett tilgang om strukturen hadde blitt satt opp riktig (koden kjører lokalt i nettleser).
-Men Interactive Auto vil komplisere prosjektstrukturen noe. Kunne valgt SSR (Static Server Rendring) og det tekniske hadde blitt enda mer forenklet.
-Men kostnaden med det er at sidene ikke er interaktive og brukeren kan oppleve grensesnittet som lite responsivt.
+#### Problem velge gjengivelsesmodus
+Problem: Applikasjonen må ha en plass der komponentene kjører og valg rundt interaktivitet må tas
 
+Valgte Interactive Server som gjengivelsesmodus for enkelt oppsett i starten. "Problemet" med denne modusen er at den bruker SignalR og er avhengig av nettverk.
+En annen løsning kunne vært Web Assembly og man kunne kjørt programmet uten internett tilgang om strukturen hadde blitt satt opp riktig (koden kjører lokalt i nettleser) og API-et hadde blitt droppet.
+Men WebAssembly og da spesilelt med Interactive Auto varianten ville komplisere prosjektstrukturen noe. Kunne valgt SSR (Static Server Rendring) og det tekniske hadde blitt enda mer forenklet.
+Men kostnaden med det er at sidene ikke er interaktive og brukeren vil oppleve grensesnittet som ikke responsivt.
+Tenker det viktigste er å se ann prosjekt og kunde og ta en beslutning med grunnlag i hva kunden ønsker.  
+
+#### Problem tilstandsbærer
+Problem: Koden er delt i flere klasser/sider/komponenter der mange må rapportere og hente data fra en felles delt tilstand 
+
+Løsning:
 Valgte å ha GameNigtState som en egen klasse som bærer tilstanden til en spillkveld. Dette er ikke et eget valg jeg tok men en del av oppgaveteksten.
 Synes allikevell at det er verdt å trekke frem da det gjorde prosjektstrukturen enkel å forstå. Trenger man å bruke noe fra GameNightState så injecter man den.
-Så enkelt 
-Føler egentlig ikke det er noen reel kostnad med designvalget, men man må sette opp en egen klasse.
-Kunne droppet klassen og spredt logikken, men det hadde blitt veldig ugunstig. 
+Det er en fordel med tanke på at denne klassen er injectet mange plasser. 
+Kostnaden med designvalget er at komponentene må abonnere på OnChange og melde seg av i Dispose. 
+I tillegg må man sette opp en egen klasse. Kunne droppet klassen og spredt logikken, men det hadde blitt veldig ugunstig og dårlig.
+Tilstander kunne blitt overført via Parameter og EventCallback eller med Cascading values. Men etter litt drøftinger med Claude viser det seg at Parameter og EventCallback ikke er reelt alternativ.
+En trestruktur er ikke egnet for en slik tilstand da den brukes av flere grener. Parameter og EventCallback er beregnet for en gren og ikke på kryss og tvers.
+Kunne vist brukt Cascading Values fra MainLayout der hver endring hadde tegnet alt under layouten på nytt. Synes egentlig at det virket som en spennende tanke. Kanskje kunne det forenklet koden?
+Ble frarådet det av Claude siden sidene blir tett koblet til MainLayout, Layouten får to ansvar og hver endring tegner alt på nytt. Utfordret Claude litt på om tegningen på nytt er en ulempe.
+Vi ble enige om at det kommer ann på... Ved mange komponenter og et stort system så er det en ulempe. Men det å slippe litt av den OnChange koden er jo egentlig en fordel.
+Samtidig skal man skrive kode som skalerer så det å anta at et system alltid kommet til å være lite og oversiktlig kan bli en feil antakelse. 
 
+
+#### Problem lagring av tilstand
+Problem: Data gikk tapt om nettleser ble refreshet.
+
+Løsning:
+Jeg valgte å lagre tilstanden for spillkvelden i nettleseren med ProtectedLocalStorage. Kostnaden er ekstra kompleksitet og mer kode som må vedlikeholdes. 
+Flere filer måtte endres under ombygginen. Som utvikler er det en kostnad relatert til å implementere endringen, men ikke minst sette seg inn i kode som har blitt generert av KI.  
+Gevinsten er er tilstanden blir beholdt om bruker refresher side og lukker og åpner nettleser. Mener absolutt at gevinsten veier opp for kostnadene. 
+
+Andre alternativer: 
+Claude foreslo også sessionStorage som også overlever refreshing. Da ville lagringen forsvunnet om fanen ble lukket og hver fane hadde fått sin egen spillkveld. Men det var ikke i tråd med mine ønsker.
+Finnes vist en localStorage variant som er ukryptert. Kunne brukt denne grunnet at applikasjonen ikke er sikkerhetskritisk og små konsekvenser om noen tukler med dataen. Den virkes med WebAssembly og er enklere å feilsøke (kilde Claude).
+Database. Det mest "proffe" alternativet. Koster litt ekstra kompleksitet i koden. Koster å drifte en database.  
+
+#### Problem henting av totalvurdering
+Problem: Ville vise totalvurdering for hvert spill
+
+Løsning:
+Jeg valgte å lagre vurderinger av spillene i en liste og laget en metode for å regne ut gjennomsnittet av alle vurderinger for hvert enkelt spill. Satte opp API endepunkt GET /api/games/{id}/totalRatingByGame for å hente totalvurdering.
+DiceRating kaller dette APIet og viser totalvurdering.
+Jeg anser endepunktet som gunstig med tanke på skalerbar kode. Kanskje er det andre deler av systemet som skal bruke eller vise totalvurdering. Da er det veldig kjekt at endepunktet ligger klart.
+En annen fordel med endepunktet er at det sender lite data, men man kan på den andre siden argumentere for at ekstra små endepunkt medfører ekstra kode. 
+Kostnaden er enda et endepunkt og kompleksitet rundt utregning. Jeg burde egentlig laget en automatisktest for å sjekke at utregninger blir riktig, men har testet det manuelt. 
+Koden blir også avhengig av mange API kall noe som må sies å være en kostnad i seg selv. 
+Ombyggingen i dokumentet Ombygging-totalvurdering-i-GameDTO.pdf burde blitt implementert for å ta ned antallet API kall.
+Burde lagt totalen som et felt i GameDTO slik at den følger med når spillene hentes.
+Totalt sett anser jeg API endepunktet som et ok designvalg men det er egentlig dårlig gitt alternativet for ombygging. Ble ikke gjort grunnet prioriteringer og at det viktigste er forståelse.
+
+
+#### Enkle endringer
 Det ville ha vært relativt enkelt å bytte til databaselagring istedenfor minnelagringen som er nå. Måtte stort sett kun ha endret på GamesStorageAndQuery klassen.
-Tenker jeg hadde laget et interface og registrert det i Program.cs. Ville muligens ha beholdt en kopi av GamesStorageAndQuery prosjektet for hurtigere testing.
+Tenker jeg hadde laget et interface og registrert det i Program.cs. Ville muligens ha beholdt en kopi av GamesStorageAndQuery klassen for hurtigere testing.
 Ulempen er om disse klassene kommer ut av sync... Bør ikke ha for mye gammel "kjekk å ha" ubrukt kode.
 
 Det å legge til et nytt filter for søk mener jeg ville gått veldig greit. Har allerde gjort det en gang før. Eksisterende struktur har løs kobling og man trenger relativt små endringer i koden.
 Men slik det er nå må man lage egne tester for hvert filter.
 
+#### Vanskelige endringer
+Egentlig det å bygge om hele applikasjonen til å kjøre stort sett offline som WebAssembly og pushe endringer så fort man har internettilgang til en database.
+Mye av logikk og visning er nå er bygdt på API-et så det ville blitt en stor endring. I tillegg måtte man hatt en tanke om hvordan dataen skull blitt robust mellomlagret på brukerens maskin.
+Kanskje kunne man droppet nettleserlagring og lagret til SqlLite?
 
-
+En del drøftinger med KI rundt designvalgene. Spesielt rundt tilstandsbærer GameNightState og alternative måter. Fikk ideer og frisket opp argumentasjon som var glemt :)
 
 
 ### bUnit
