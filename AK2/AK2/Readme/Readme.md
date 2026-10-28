@@ -42,7 +42,7 @@ har jeg ansett som gunstig.
 ![GamesDetails](../Bilder/GamesDetails.png)
 
 ### Komponentdiagram utsnitt GameDetails
-![GamesDetailsKomponent](GameDetailsKomponentTre.png)
+![GamesDetailsKomponent](../GameDetailsKomponentTre.png)
  
 ## Oppgave 3
 ### Siden
