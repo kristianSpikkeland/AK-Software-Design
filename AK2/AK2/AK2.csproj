@@ -7,4 +7,18 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="Bilder\Admin side.png" />
+    <Content Include="Bilder\Admin v2.png" />
+    <Content Include="Bilder\Forside.png" />
+    <Content Include="Bilder\GamesDetails.png" />
+    <Content Include="Bilder\Min spillkveld.png" />
+    <Content Include="Bilder\spillekveld.png" />
+    <Content Include="Bilder\SpillhylleV2.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>
