@@ -2,6 +2,8 @@
 * Utvikler: Kristian Spikkeland
 * Lenke til Github: https://github.com/kristianSpikkeland/AK-Software-Design.git
 
+![FrontPage](../Bilder/FrontPage.png)
+
 ## Kjøring
 Programmet kjøres med play knappen. Utforming på denne avhengiger av kodeeditor. Alternativt kan man bruke terminalen:
 ```txt
@@ -15,14 +17,14 @@ dotnet test
 ```
 
 ## Struktur
-For mer detajert KI bruk med blant annet spørsmål og svar. Se fil med navn: AI_Q&A.md
-For PDFer som KI har produsert til meg se vedleggsmappen.
-I vedleggsmappen ligger også tegninger relatert til oppgave 5.
-Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokumentet.
+For mer detajert KI bruk med blant annet spørsmål og svar. Se fil med navn: AI_Q&A.md <br>
+For PDFer som KI har produsert til meg se vedleggsmappen. <br>
+I vedleggsmappen ligger også tegninger relatert til oppgave 5. <br>
+Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokumentet. <br>
 
 ## Oppgave 1
 ### Siden
-![SpillhylleV2](../Bilder/SpillhylleV2.png)
+![GamesV2](../Bilder/GamesV2)
 
 ### Info 
 Siden Games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
@@ -35,11 +37,15 @@ har jeg ansett som gunstig.
 
 
 ## Oppgave 2
+### Siden
+![GamesDetails](../Bilder/GamesDetails.png)
 
+### Komponentdiagram utsnitt GameDetails
+![GamesDetailsKomponent](GameDetailsKomponentTre.png)
  
 ## Oppgave 3
 ### Siden
-![GamesDetails](../Bilder/GamesDetails.png)
+![GamesNightPage](../Bilder/GameNightPage.png)
 
 ### Teoridel tilstander
 Tilstand betyr i denne sammenheng alt applikasjonen husker når den kjører. For eksempel spill som er lagt til spillkveld og hvilken fane som er åpen.
@@ -67,6 +73,8 @@ Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og
 Om nettleser lukkes og åpnes igjen så er tilstanden fortsatt lagret.
 
 ## Oppgave 4
+### Siden
+![AdminPage](../Bilder/AdminPageV2.png)
 Angret litt på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
 Da er det enklere å demonstrere faktisk bruk av APIer istedenfor den løsningne jeg startet på der alt ligger på server siden.
 En annen fordel med WebAssembly er at spillkvelden kan kjøres uten internett tilgang. Dette gjelder selvsagt om man ikke bruker API-er for applikasjonen.  
