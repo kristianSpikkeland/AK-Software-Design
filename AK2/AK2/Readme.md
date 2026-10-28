@@ -1238,6 +1238,29 @@ GameApiClient: Klassen ligger på klientsiden og kaller API-et. En del til Board
 
 Litt rådføring med KI rundt hva som regnes som komponent. Trodde ikke sidene blie regnet som komponent, men det gjør de vist. Valgte å ikke skrive noe om ansvar for sidene da dette fremkommer av tegningene.
 
+### Designvalg
+Valgte Interactive Server som gjengivelsesmodus. "Problemet" med denne modusen er at den bruker SignalR og er avhengig av nettverk.
+En annen løsning kunne vært Interactive Auto (Web Assembly) og man kunne kjørt programmet uten internett tilgang om strukturen hadde blitt satt opp riktig (koden kjører lokalt i nettleser).
+Men Interactive Auto vil komplisere prosjektstrukturen noe. Kunne valgt SSR (Static Server Rendring) og det tekniske hadde blitt enda mer forenklet.
+Men kostnaden med det er at sidene ikke er interaktive og brukeren kan oppleve grensesnittet som lite responsivt.
+
+Valgte å ha GameNigtState som en egen klasse som bærer tilstanden til en spillkveld. Dette er ikke et eget valg jeg tok men en del av oppgaveteksten.
+Synes allikevell at det er verdt å trekke frem da det gjorde prosjektstrukturen enkel å forstå. Trenger man å bruke noe fra GameNightState så injecter man den.
+Så enkelt 
+Føler egentlig ikke det er noen reel kostnad med designvalget, men man må sette opp en egen klasse.
+Kunne droppet klassen og spredt logikken, men det hadde blitt veldig ugunstig. 
+
+Det ville ha vært relativt enkelt å bytte til databaselagring istedenfor minnelagringen som er nå. Måtte stort sett kun ha endret på GamesStorageAndQuery klassen.
+Tenker jeg hadde laget et interface og registrert det i Program.cs. Ville muligens ha beholdt en kopi av GamesStorageAndQuery prosjektet for hurtigere testing.
+Ulempen er om disse klassene kommer ut av sync... Bør ikke ha for mye gammel "kjekk å ha" ubrukt kode.
+
+Det å legge til et nytt filter for søk mener jeg ville gått veldig greit. Har allerde gjort det en gang før. Eksisterende struktur har løs kobling og man trenger relativt små endringer i koden.
+Men slik det er nå må man lage egne tester for hvert filter.
+
+
+
+
+
 ### bUnit
 Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfro å få KI til å lage en instruks til meg.
 Prompt: Gi meg et enkelt og pedagogisk eksempel på hvordan man kan teste komponenter med bUnit. 
