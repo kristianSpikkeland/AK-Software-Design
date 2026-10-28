@@ -2,6 +2,7 @@
 * Utvikler: Kristian Spikkeland
 * Lenke til Github: https://github.com/kristianSpikkeland/AK-Software-Design.git
 
+## Velkomstside
 ![FrontPage](../Bilder/FrontPage.png)
 
 ## Kjøring
@@ -24,7 +25,7 @@ Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokument
 
 ## Oppgave 1
 ### Siden
-![GamesV2](../Bilder/GamesV2)
+![GamesV2](../Bilder/GamesV2.png)
 
 ### Info 
 Siden Games har ansvar for å vise alle spill og bruker GameCard som er en gjenbrukbar komponent.
