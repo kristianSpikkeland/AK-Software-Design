@@ -114,7 +114,7 @@ else
 		message = null;
 	}
 
-	private async Task HandleRemove(BoardGame g) => GameNight.RemoveAsync(g.Id);
+	private async Task HandleRemove(BoardGame g) => await GameNight.RemoveAsync(g.Id);
 
 	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
 
