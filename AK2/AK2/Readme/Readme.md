@@ -42,8 +42,55 @@ har jeg ansett som gunstig.
 ![GamesDetails](../Bilder/GamesDetails.png)
 
 ### Komponentdiagram utsnitt GameDetails
-![GamesDetailsKomponent](../GameDetailsKomponentTre.png)
- 
+![ComponentTree](../Bilder/ComponentTree.png)
+
+### Parmetere og hendelser DiceRating
+Som komponenttreet over viser er DiceRating en sentral del av systemet.
+DiceRating har parametre for:
+* EventCallback<int> ValueChanged
+* int Value
+* bool ReadOnly
+* BoardGame? BoardGame
+
+Det er forelderen GamesDetails som sender verdi for terningkast ned til DiceRating. Så kalles ValueChanged og hendelsen om at noe har skjedd når forelderen GameDetails.
+GameCard bruker en lettere versjon av DiceRating enn GameDetails. Grunnen til dette er siden at man på Games siden ikke skal ha tilgang til å sette terningkast/vurdering.
+Dette styres av ReadOnly parameteret. 
+
+Utdag fra DiceRating. Komponentens parameter ReadOnly styrer visningen:
+```
+@if (ReadOnly == false)
+{
+	<p>Terning skal trilles for spillet 😊</p>
+}
+```
+
+Utdrag fra GameCard. Legg merke til at ReadOnly er true:
+```
+<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
+```
+
+### Parmetere for GameCard
+GameCard har parametre for:
+* bool IsSelected
+* BoardGame? BoardGame
+* EventCallback<BoardGame> OnAdd
+* EventCallback<BoardGame> OnRemove
+
+### Parameter verdier ned for GameCard og DiceRating
+I tillegg sender GameCard følgende verdier for parametre ned til DiceRating for:
+
+* Value = BoardGame.Rating
+* ReadOnly="true"
+* BoardGame="BoardGame"
+
+### Videresending GameCard
+Legg merke til hvordan GameCard setter komponenten GameNightButton:
+```
+<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
+```
+
+IsSelected og hendelsene OnAdd og OnRemove er parametre som GameCard aldri setter men bringer videre. GameCard funker som et mellomledd for disse parametrene mellom Games og GameNightButton.  
+
 ## Oppgave 3
 ### Siden
 ![GamesNightPage](../Bilder/GameNightPage.png)
