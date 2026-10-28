@@ -1,0 +1,965 @@
+﻿# KI bruk oppgave 1
+* Noe debugging av egenskrevet Linq spørring.
+* En prompt: Beste måte for å generere stigende Id enkelt med konstruktør i C# klasse.
+* Brukte IEnumerable<BoardGame> games = gamesQuery.GetAllGames() direkte. Fikk beskjed om at man må bruke OnInitialized metode for oppdatering.
+* Fikk en lang feilmelding om at noe var galt første gang jeg kjørte programmet. Det viste seg at jeg hadde registrert en service
+som var avhengig av en annen Service som ikke var registrert. Løsningen ble naturligvis å registrere denne servicen også.
+*Fikk en ny feilmelding der det viste seg at jeg hadde glemt å bruke new og instansiere listen til brettspillene.
+
+prompt: Hvordan kan jeg bygge filteret mitt slik at jeg kan søke på antall spillere også i samme søkefelt som for navnet. 
+Skal finne treff for mellom min og maks spillere.
+
+Svar: Du kan sjekke om teksten i søkefeltet er et tall. Er den det, finner du spill der tallet ligger mellom min og maks spillere. Er den ikke et tall, søker du på navn som før.
+
+```C#
+IEnumerable<BoardGame> FilteredItems
+{
+    get
+    {
+        if (string.IsNullOrWhiteSpace(nameFilter))
+            return games;
+
+        var filter = nameFilter.Trim();
+
+        if (int.TryParse(filter, out int players))
+        {
+            return games.Where(g =>
+                g.MinPlayers <= players && players <= g.MaxPlayers);
+        }
+
+        return games.Where(g =>
+            g.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
+    }
+}
+```
+
+Et spørsmål rundt om man burde bruke = new() for spill man søker etter i Games.razor.
+Fikk til svar at det skjuler feil og at det tryggeste er å la det være null med ? og heller gi brukeren beskjed  med eks: <p>Ingen spill funnet.</p>
+
+Prompt: Skal ha en knapp der hvor jeg får tilfeldig spill skrevet ut når bruker trykker på knapp. Da blir det kanskje litt feil å ha GetRandomGame metoden min i OnInitialized() metoden?
+Ja, det stemmer. OnInitialized() kjøres bare én gang når siden lastes, så der ville du fått ett tilfeldig spill som aldri endrer seg. Kallet skal ligge i en metode som knappen kjører ved klikk:
+
+```C#
+<button @onclick="ShowRandomGame">Tilfeldig spill</button>
+
+@if (randomGame != null)
+{
+    <p>@randomGame.Name</p>
+}
+
+@code {
+    private BoardGame? randomGame;
+
+    private void ShowRandomGame()
+    {
+        randomGame = gamesQuery.GetRandomGame();
+    }
+}
+```
+
+Prøvde med: boardGames.Single(g => g.Id == index) for GetRandomGame metoden min men programmet krasjet om jeg klikket hurtig.
+Fikk dette til svar:
+
+Den beste løsningen er å trekke et tilfeldig element i stedet for en tilfeldig Id:
+```
+public BoardGame? GetRandomGame()
+{
+    if (games.Count == 0)
+        return null;
+
+    int index = Random.Shared.Next(games.Count);
+    return games[index];
+}
+```
+Random.Shared.Next(games.Count) gir et tall fra 0 til og med Count - 1, som alltid er en gyldig plass i listen. Da spiller det ingen rolle hva Id-ene er.
+
+Prompt: Tenker at bruker skal klikke på Id en i oversikten over spillene og deretter bli navigert til riktig side som viser detaljer. Hvordan bør det gjøres?
+Svar: Det enkleste er å gjøre Id-en (eller navnet) til en vanlig lenke til detaljsiden. Siden detaljsiden har ruten /games/{Id:int}, trenger lenken bare å peke dit med riktig Id.
+```C#
+<td><a href="/games/@g.Id">@g.Id</a></td>
+```
+
+Spurte litt rundt om det går ann å sentralisere mer av koden og feltene:
+Svar: Kort sagt: hver komponent har sine egne felter, så de må deklareres der de brukes.
+
+Men fikk et tips som jeg var enig i: Detaljsiden henter nå hele listen bare for å plukke ut ett spill. Det er ryddigere å flytte det oppslaget inn i tjenesten:
+
+```C#
+public BoardGame? GetGameById(int id) =>
+    GetAllGames().FirstOrDefault(g => g.Id == id);
+```
+
+Opplevde problemer med at category ikke var synlig på GamesDetail siden min. Spurte KI og fikk til svar at Category ikke var lagret i konstruktør.
+
+Prompt: Har flyttet filtreringen ut i en egen metode i StorageAndQuery klassen. Hva er beste praksis for å aktivere filteret i Games klassen?
+
+Svar (utdrag): 
+
+Filtrer når teksten endres (anbefalt)
+
+Lagre resultatet i et felt, og oppdater det bare når brukeren skriver:
+```html
+<input type="search" @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" />
+```
+
+```C#
+private IEnumerable<BoardGame> filteredGames = [];
+
+protected override void OnInitialized() => ApplyFilter();
+
+private void ApplyFilter()
+{
+    filteredGames = gamesQuery.FilterGames(nameFilter).ToList();
+}
+```
+
+Prompt: Hvordan kan man bruke foreach for visning av komponenter
+
+Svar: Du skriver komponenten inne i @foreach på samme måte som vanlig HTML. Den lages da én gang per element i listen:
+
+```C#
+@foreach (var game in filteredGames)
+{
+    <GameCard Game="game" @key="game.Id" />
+}
+```
+@key er valgfritt, men lurt i lister som endrer seg. Blazor bruker det til å holde styr på hvilket kort som hører til hvilket spill når listen filtreres. 
+Uten @key kan Blazor gjenbruke feil kort når elementer forsvinner, og da kan tilstand inne i kortet havne på feil spill. Bruk noe unikt, som Id.
+
+Det seg at jeg haddde laget fem parametre i GameCard istedenfor å bare gi et BoardGame objekt. Programmet krasjet når jeg klikket på spill linkene etter at jeg implementerte endringen uten at jeg skjønte hvorfor.
+Spurte KI og fikk til svar at feilen lå hos GamesDetails som fortsatt brukte de gamle parameteren fra GameCard.
+
+
+Noe hjelp med tester. Hadde en tanke om å ta en liste for filteret og en liste for alle spill og sammenligne innhold.
+Etter litt chatting fikk jeg beskjed om at det var et blindspor. Valgte heller å bruke assert.Empty();
+
+Mot slutten av arbeidet med oppgaven ønsket man å legge til det filteret for antall spillere. Likte i utgangspunktet det første filteret mitt veldig godt, men innser at det har begrensninger.
+Man kan ikke søke opp både spillnavn og antall spillere og få et kombinert resultat. Forsøkte litt først selv uten hell. Hadde riktignok noe begrenset med tid på dette tidspunktet.  
+
+Kjørte deretter prompten:
+Ønsker et filter som kun sorterer på antall spillere. Det er viktig at filtrene skal kunne kombineres i visningen.
+Det vil si at om brukeren skriver M i det eksisterende feltet og skriver 5 (spillere) i det nye feltet så skal bare spill som begynner med M og har antall spillere i det intervallet vises.
+Ønsker allikevell mest mulig løs kobling som vil si at filtrene skal være minst mulig avhengig av hverandre.
+Ønsker ikke å endre på eksisterende tester om det er praktisk mulig. Lag en pedagogisk PDF som viser endringene.
+
+Svar: Se vedleggsmappen og dokument med navn: Kombinert-filter-navn-og-spillere.pdf
+
+Likte koden. Var slik jeg hadde tenkt det. Slet selv litt med tanken rundt kombinering av filtrene men det med å bare ta listen fra spillnavn filteret og bruke det videre i antallspillere filteret var en grei løsning.
+
+
+# KI bruk oppgave 2
+Prompt: Hvordan henger EditForm sammen med Value og ValueChanged?
+
+Svar: De er to forskjellige ting, men de bruker det samme mønsteret.
+
+EditForm er rammen rundt et skjema. Den holder på et modellobjekt (f.eks. et BoardGame), validerer det og kaller OnValidSubmit når alt er gyldig. Selv har den ingen Value og ValueChanged.
+
+Feltene inne i skjemaet har derimot Value og ValueChanged. Blazors egne felt, som InputText og InputNumber, er bygget på akkurat det samme mønsteret som DiceRating.
+Derfor skriver du @bind-Value med stor V på dem:
+
+```C#
+<EditForm Model="game" OnValidSubmit="Save">
+    <InputText @bind-Value="game.Name" />
+    <InputNumber @bind-Value="game.MinPlayers" />
+    <DiceRating @bind-Value="game.Rating" />
+</EditForm>
+````
+
+
+Prompt: Tenkte å ha en metode som jeg kaller HandleAdd på Games siden  som jeg kobler til en EventCallback metode som ligge i GameCard.  
+Foreløpig tenker jeg at den kun skal skrive ut en ekstra beskjed "spillet ble lagt til som skal være synlig i tre sekunder før den forsvinner. Hva er beste praksis?
+
+Svar (Utrdag) EventCallback er naturligvis ikke en metode men et parameter.
+
+Kjørte nye prompter der man ba om kodeeksempler.
+Fikk til svar at det fantes problemstillinger som at en bruker klikker hurtig på knapppen forlater siden og at man 
+kunne bruke cansellationToken. 
+
+Ønsket ingen voldsom løsning på tidspunktet. 
+
+Fikk til slutt denne koden som var det jeg ønsket meg:
+```
+@if (message is not null)
+{
+    <p>@message</p>
+}
+
+@code {
+    private string? message;
+
+    private async Task HandleAdd(BoardGame game)
+    {
+        message = "Spillet ble lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
+}
+```
+
+Hovedproblemet mitt var egentlig at jeg slet med hvordan man henter ut meldingen. Den første prompten burde adressert det bedre :)
+
+Prompt: Har et problem. Min onclick skal gjøre to ting på en gang. 
+Den skal kobles til metoden som sender signal til forelderen om at brukeren klikket og den skal samtidig oppdatere Count via Add metode som ligger i en GameNightState klasse. Svar veldig kort.
+
+Svar: Gjør begge deler i forelderens HandleAdd, ikke i kortet. Kortet sender bare signalet, og forelderen oppdaterer Count:
+```C#
+@inject GameNightState GameNight
+
+private async Task HandleAdd(BoardGame game)
+{
+    GameNight.Add();
+    message = "Spillet ble lagt til";
+    await Task.Delay(3000);
+    message = null;
+}
+```
+
+Prompt: Hvordan lager men en side som blir den som brukeren kommer til om en Id i URLen ikke finnes?
+
+Svar: Lag selve siden
+En helt vanlig side, for eksempel Pages/IkkeFunnet.razor:
+```C#
+@page "/ikke-funnet"
+
+<h2>Fant ikke det du lette etter</h2>
+<p>Spillet finnes ikke, eller adressen er feil.</p>
+<a href="/spillhylla">← Tilbake til spillhylla</a>
+```
+
+Fortell Routeren hvilken side som er “ikke funnet”-siden, i Routes.razor (eller App.razor):
+```C#
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.IkkeFunnet)">
+    ...
+</Router>
+```
+
+I spillsiden, når spillet ikke finnes:
+```C#
+@inject NavigationManager Nav
+
+@code {
+    protected override async Task OnParametersSetAsync()
+    {
+        game = await Games.GetByIdAsync(Id);
+        if (game is null)
+        {
+            Nav.NotFound();
+        }
+    }
+}
+```
+Opplevde at Til oversikt knappen min ikke funket på NotFound siden. Spurte KI og fikk til svar at jeg enten kunne gjøre siden interaktiv,
+men at det beste var om man la det som en lenke og bruker @onclick når knappen skal gjøre noe, som å legge til spillkveld.
+
+```C#<a href="/games" class="btn btn-primary">Til oversikt</a>
+```
+
+Skjønte ikke helt hva som menes med aktiv lenke og spurte KI om hva det var.
+Videre fikk man kodeeksempel for hvordan man kan lage NavLinker til meny og tilhørende css. Ønsket venstrejustering av menyen. Legger ved denne KI genererte koden:
+
+NavMenu.razor
+```C#
+<nav class="nav-menu">
+    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+        Forside
+    </NavLink>
+
+    <NavLink class="nav-link" href="Games">
+        Spillhylla
+    </NavLink>
+
+    <NavLink class="nav-link" href="game-night">
+        Min spillekveld 
+    </NavLink>
+</nav>
+```
+
+NavMenu.razor.css
+```C#
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+.nav-menu ::deep a {
+    color: #333;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.nav-menu ::deep a:hover {
+    background-color: #e9ecef;
+}
+
+.nav-menu ::deep a.active {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+}
+
+
+```
+
+Ny prompt der jeg spurte om hvordan jeg burde legge til NavMenuen for alle sider der den er aktuell.
+
+Fikk til svar at den kunne legges i MainLayout.razor og at alle sider vil få den som standard: 
+
+MainLayout.razor
+```C#
+@inherits LayoutComponentBase
+
+<div class="page">
+    <aside class="sidebar">
+        <NavMenu />
+    </aside>
+
+    <main class="content">
+        @Body
+    </main>
+</div>
+```
+
+MainLayout.razor.css
+```C#
+.page {
+    display: flex;          
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.content {
+    flex: 1;               
+    padding: 1.5rem;
+}
+```
+
+Videre ble jeg forklart at om en side ikke skal ha menyen kan man gi den en egen layout med @layout øverst på siden.
+
+Prompt: Har satt at bruker skriver et tall inn i skjemaet. Hvordan validere at det er mellom 1 og 6 og vise feilmelding om det er ugylidg verdi? 
+Tenkte å bruke OnValidSubmit og koble den til en Save metode.
+
+Svar: Ja, OnValidSubmit er riktig valg. Den kalles bare når alt er gyldig, så Save trenger ikke sjekke noe selv. Du trenger:
+
+1. Regelen på modellen;
+```C#
+using System.ComponentModel.DataAnnotations;
+
+public class BoardGame
+{
+    // ...
+    [Range(1, 6, ErrorMessage = "Terningkastet må være fra 1 til 6")]
+    public int Rating { get; set; }
+}
+```
+
+2. Skjemaet
+```C#
+<EditForm Model="game" OnValidSubmit="Save" FormName="game-form">
+    <DataAnnotationsValidator />
+
+    <label>
+        Terningkast
+        <InputNumber @bind-Value="game.Rating" />
+    </label>
+    <ValidationMessage For="() => game.Rating" />
+
+    <button type="submit">Lagre</button>
+</EditForm>
+
+@code {
+    private BoardGame game = new();
+
+    private async Task Save()
+    {
+        // Kommer du hit, er alle reglene oppfylt
+        await GameApi.CreateAsync(game);
+    }
+}
+```
+
+Stusset litt på hvorfor ikke ValidationSummary ble brukt.
+Fikk til svar: 
+<ValidationMessage For="..." /> viser feilene for ett felt, typisk rett under det feltet.
+<ValidationSummary /> viser alle feilene samlet i én liste.
+
+Mye senere fikk jeg beskjed av KI om at Rating var satt feil i forhold til oppgavetekst. 
+Jeg hadde satt direkte: 
+```
+<p>Din vurdering: @BoardGame.Rating</p>
+```
+
+Problemet med det er at DiceRating endrer sin egen parameterverdi direkte og ikke melder ny verdi til forelderen gjennom ValueChanged.
+På dette stadiet var jeg ferdig med API delen av oppgaven. Derfor kan koden vist under avvike noe med det som er forventet på dette stadie.
+
+Prompt: 
+I forhold til DiceRating og oppfyllelse av oppgavetekst. Kan jeg flytte EditForm fra GamesDetails til Dice rating. Også legge inn Rating som et parameter. Er det fornuftig? Hva er beste løsning som krever minst mulig endring for å oppfylle oppgavetekst.
+
+Svar:
+
+Ja, det er fornuftig, og det er den løsningen som krever minst endring.
+
+Ikke lag en egen Rating-parameter. Bruk Value.
+Oppgaven krever parameterne Value og ValueChanged, og @bind-Value virker bare med akkurat de navnene.
+Value er terningkastet. En Rating ved siden av ville gjort det samme, og gjort det uklart hvilken som gjelder.
+
+Bruk et vanlig <input>, ikke EditForm.
+EditForm trenger en modell, og den eneste modellen DiceRating har, er Value, som komponenten ikke får lov til å endre.
+Komponenten endrer kopien, og sender den opp med ValueChanged når brukeren klikker «Lagre».
+
+DiceRating.razor
+Bytt <p>Din vurdering: @BoardGame.Rating</p> og @if (ReadOnly == false)-blokken med:
+
+```C#
+<p>Din vurdering: @Value</p>
+
+@if (ReadOnly == false)
+{
+	<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
+	<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+
+	@if (validationMessage is not null)
+	{
+		<p style="color:red">@validationMessage</p>
+	}
+}
+```
+
+I @code, bytt public event Action? OnChange; med:
+```C#
+// Local copy, so the component never changes its own Value parameter
+private int newValue;
+private string? validationMessage;
+
+protected override void OnParametersSet() => newValue = Value;
+
+private async Task SaveAsync()
+{
+	if (newValue is < 1 or > 6)
+	{
+		validationMessage = "Terningkastet må være fra 1 til 6";
+		return;
+	}
+
+	validationMessage = null;
+
+	// Tells the parent about the new value
+	await ValueChanged.InvokeAsync(newValue);
+}
+```
+Totalvurderingen og RefreshTotalAsync står som før.
+
+
+GamesDeatials.razor
+Bytt DiceRating-linjen og hele EditForm med:
+```C#
+<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false"
+			@bind-Value="game.Rating" @bind-Value:after="UpdateRating" />
+```
+
+@bind-Value setter game.Rating når DiceRating sier fra, og @bind-Value:after kaller UpdateRating etterpå, som lagrer via API-et og oppdaterer totalen. UpdateRating er uendret.
+
+
+GameCard.razor
+```
+<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
+```
+
+Egen kommentar
+Fordelen med endringen ble først og fremst at skjemaet ble flyttet ut av GamesDetails til komponenten.
+Dette gjør koden mer skalerbar om vi skulle hatt lagring av vurdering flere plasser.
+Liten betydning for GameCard da den bruker ReadOnly versjonen og ikke setter vurderinger.
+
+
+# KI bruk oppgave 3
+La til en bool verdi IsSelected for å holde styr på om et spill er valgt eller ikke.
+
+Prompt: Sliter med at melding blir vist for alle spill og ikke kun spillet det gjelder. Hva er beste praksis?
+
+Svar: Problemet er at du har én message-variabel for hele siden
+Beste praksis på sikt: la GameCard eie meldingen selv:
+
+GameCard.razor
+```C#
+@if (message is not null)
+    {
+        <p>@message</p>
+    }
+
+@code {
+
+    private async Task Add()
+    {
+        message = BoardGame.IsSelected
+            ? "Spillet er allerede lagt til"
+            : "Spillet ble lagt til";
+
+        await OnAdd.InvokeAsync(BoardGame);
+
+        await Task.Delay(3000);
+        message = null;
+    }
+```
+
+Da blir HandleAdd på foreldresiden bare selve logikken:
+
+```C#
+private void HandleAdd(BoardGame game)
+{
+    if (game.IsSelected) return;
+    game.IsSelected = true;
+    GameNight.Add(game);
+}
+```
+
+Det ante meg at dette ikke var i tråd med oppgavetekst. 
+Ny prompt: Oppfyller det kravet i oppgavetekst knyttet til foreldre barn rolle.
+
+Svar: Oppgave 2 sier at GameCard skal si fra via en EventCallback, at kortet ikke selv avgjør hva som skjer, og at det er forelderen som viser bekreftelsen. 
+I variant 2 leser kortet IsSelected og bestemmer selv om meldingen er «lagt til» eller «allerede lagt til». 
+Da tar barnet en beslutning som tilhører forelderen, og det bryter med «data ned, hendelser opp».
+Dette svaret var som forventet :)
+
+Videre fikk jeg forklart:
+Koden din lagrer valget som game.IsSelected på selve BoardGame-objektet. Det strider mot oppgave 3 på to måter:
+
+Spillekvelden skal ha ett hjem: GameNightState. Når «valgt» også ligger på spillet, har du to sannheter som kan komme ut av synk, for eksempel når du fjerner et spill fra spillekvelden.
+I oppgave 4 hentes spillene fra API-et. Da blir IsSelected enten nullstilt ved hver henting eller delt mellom alle brukere hvis API-et lagrer det.
+
+Spør heller tilstandsklassen, og send svaret ned til kortet som parameter:
+Langt svar. Jeg hentet mye kode fra svaret. Se vedleggmappen og PDF dokument GameNight-foreldre-barn.pdf
+
+Prompt: Tenker jeg skal lage en rød runding med svart tykk skrift som viser antall valgte spill til høyre i toppen av NavMenuen min. Hvordan gjør jeg det med html og css? Har laget en egen GameBadge.
+
+Svar:
+```CSS
+.gameNight-badge {
+    display: inline-flex;          /* sentrerer tallet */
+    align-items: center;
+    justify-content: center;
+
+    min-width: 1.75rem;            /* rund ved ett siffer */
+    height: 1.75rem;
+    padding: 0 0.4rem;             /* blir en «pille» ved to siffer */
+    border-radius: 999px;          /* helt rund */
+
+    background-color: #ff3b30;     /* rød */
+    color: #000;                   /* svart */
+    font-weight: 800;              /* tykk skrift */
+    font-size: 0.9rem;
+    line-height: 1;
+}
+```
+
+```html
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">AK2</a>
+        <GameBadge />
+    </div>
+</div>
+```
+
+Prompt: GameBadge blir oppdatert med nye tallverdier når den ligger på Games siden men ikke i NavMenyen.
+
+Svar: Løsning: gjør hele appen interaktiv (anbefalt)
+I Components/App.razor legger du til render-modus på Routes og HeadOutlet:
+```C#
+<HeadOutlet @rendermode="InteractiveServer" />
+...
+<Routes @rendermode="InteractiveServer" />
+```
+
+Hva er beste praksis for Blazor. Jeg skal ha legge til og fjern knapper på spilldetaljsiden også. 
+Bare kjøre duplisert kode eller injecte fra Games siden?
+
+Svar: Ingen av delene. Du kan ikke injecte en side i Blazor, bare tjenester. Logikken du ellers ville duplisert, ligger allerede i GameNightState. 
+Spilldetaljsiden skal derfor injecte tilstandsklassen, akkurat slik Games.razor gjør.
+
+Delt logikk: GameNightState
+Alt som handler om hva som er valgt, ligger på ett sted: Contains, Add og Remove. 
+Begge sidene kaller de samme metodene, så det blir ingen duplisert logikk. Denne gjenbruken er nettopp grunnen til at du har en tilstandsklasse.
+
+Delt UI: en liten knapp-komponent
+Selve knappene blir like på begge sidene. Det er derfor ryddig å trekke dem ut i en egen, «dum» komponent som bare viser og melder fra, i tråd med «data ned, hendelser opp»:
+
+```C#
+@* GameNightButton.razor *@
+@if (IsSelected)
+{
+    <button class="btn btn-outline-danger" @onclick="() => OnRemove.InvokeAsync(Game)">Fjern fra spillekveld</button>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="() => OnAdd.InvokeAsync(Game)">Legg til i spillekveld</button>
+}
+
+@code {
+    [Parameter, EditorRequired] public BoardGame Game { get; set; } = default!;
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
+    [Parameter] public EventCallback<BoardGame> OnRemove { get; set; }
+}
+```
+
+Bruk den i GameCard i stedet for de to knappene du har der nå. Videresend parameterne fra kortet:
+```C#
+<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
+```
+
+Spilldetaljsiden blir forelderen
+```
+@page "/games/{Id:int}"
+@inject GameNightState GameNight
+
+@if (game is not null)
+{
+    <h1>@game.Name</h1>
+    @* ...detaljer... *@
+
+    <GameNightButton Game="game"
+                     IsSelected="GameNight.Contains(game.Id)"
+                     OnAdd="HandleAdd"
+                     OnRemove="HandleRemove" />
+
+    @if (message is not null)
+    {
+        <p>@message</p>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private BoardGame? game;
+    private string? message;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        game = /* hent spillet, f.eks. fra tjenesten/API-et */;
+    }
+
+    private async Task HandleAdd(BoardGame g)
+    {
+        message = GameNight.Add(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+        await Task.Delay(3000);
+        message = null;
+    }
+
+    private void HandleRemove(BoardGame g) => GameNight.Remove(g.Id);
+}
+```
+
+Videre fikk man et bra tips om å droppe:
+```C#
+public int Count { get; private set; }.
+```
+Og heller bruke:
+```C#
+public int Count => games.Count;
+```
+Da kan Count++ og Count -- fjernes. Mer stabilt
+
+
+Slet med den justeringen etter om skjermen er liten og bred. Fikk beskjed av KI om at html koden i Games måtte pakkes i en div og gis klasse:
+```C#
+<div class="game-grid">
+    @foreach (var game in filteredGames)
+    {
+        <div class="game-cell" @key="game.Id">
+            <GameCard BoardGame="game"
+                      IsSelected="GameNight.Contains(game.Id)"
+                      OnAdd="HandleAdd"
+                      OnRemove="HandleRemove" />
+
+            @if (messages.TryGetValue(game.Id, out var msg))
+            {
+                <p>@msg</p>
+            }
+
+            <a href="/games/@game.Id">Detaljer</a>
+        </div>
+    }
+</div>
+```
+
+Og fikk tilhørende css av KI:
+```
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.game-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+```
+
+Fikk også css av KI for game card:
+```C#
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+    @foreach (var game in filteredGames)
+    {
+        <GameCard BoardGame="game" @key="game.Id"
+                  IsSelected="GameNight.Contains(game.Id)"
+                  OnAdd="HandleAdd" OnRemove="HandleRemove" />
+    }
+</div>
+```
+
+Prompt: Skjønner ikke. Vis spillhylla i ca. 375 px og minst 1200 px bredde, og legg skjermbilder i README.md. Når jeg prøver med de faste verdiene så endres det jo når jeg zoomer.
+Svar: 
+Åpne spillhylla i Chrome eller Edge og trykk F12.
+Trykk Ctrl+Shift+M for å slå på device toolbar.
+Velg Responsive øverst og skriv inn bredden 375. Høyden kan for eksempel være 800.
+Ta skjermbilde: klikk på de tre prikkene i device toolbar og velg Capture screenshot. Vil du ha hele siden, velger du Capture full size screenshot.
+Gjenta med bredden 1280 (eller hvilken som helst bredde fra 1200 og oppover).
+
+Begynte med en enkel variant for start og slutt av spill. Fikk forklart en del rundt Stopwatch. Men med alle funksjonene jeg ønsket meg ble det til slutt en del kode.
+Jeg ønsket en knapp for å starte spill og en for å avslutte spill. Videre ønsket jeg en teller som fortsatte å telle om bruker forlater siden.
+For AI dokumentasjon av dette se: Tidtaking_spillkveld
+
+Til slutt ønsket man at spillene som brukeren hadde valgt på GameNightPage siden skulle rammes inn med en boks for hvert spill.
+Fikk hjelp av KI med å pakke det inn i en html klasse og lage en tilhørende css.
+
+Prompt: Ønsker at du lager en PDF som viser ombyggingen til ProtectedLocalStorage. Videre må jeg ha en knapp som resetter spillkvelden. Kjørte en ny prompt der jeg fikk lagt til farger for endringene.
+Svar: Se i vedleggsmappen etter Spillekvled protectedlocalstorage 
+
+Ny prompt, lastet opp prosjektet mitt til Claude:
+Nå funker ikke den bekreftelsen om at spillkveld er lagt til så bra. Noen ganger henger den og kommer etterhvert som man klikker på andre spill mens noen ganger kommer den ikke i det hele tatt.
+
+Svar: Jeg fant årsaken. Det er en sideeffekt av at AddAsync ble asynkron.
+Meldingen blir derfor aldri vist, med mindre noe annet får siden til å tegnes i løpet av de 3 sekundene, for eksempel at du klikker på et annet spill. Det er nøyaktig det du ser.
+
+Løsningen
+Be Blazor tegne på nytt med en gang meldingen er satt, med StateHasChanged():
+
+Games.Razor
+```C#
+private async Task HandleAdd(BoardGame game)
+{
+    var text = await GameNight.AddAsync(game)
+        ? "Spillet ble lagt til"
+        : "Spillet er allerede lagt til";
+
+    messages[game.Id] = text;
+    StateHasChanged();               // ← vis meldingen nå
+
+    await Task.Delay(3000);
+
+    // Fjern bare hvis det fortsatt er denne meldingen
+    if (messages.TryGetValue(game.Id, out var current) && current == text)
+        messages.Remove(game.Id);
+}
+```
+
+GamesDetails.razor
+```C#
+private async Task HandleAdd(BoardGame g)
+{
+    message = await GameNight.AddAsync(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+    StateHasChanged();               // ← vis meldingen nå
+
+    await Task.Delay(3000);
+    message = null;
+}
+```
+
+## Oppgave 4
+Fikk en del hjelp med implementering av sletting: 
+
+```
+public Task<bool> DeleteGameAsync(int id)
+{
+    var removed = boardGames.RemoveAll(g => g.Id == id) > 0;
+    return Task.FromResult(removed);
+}
+```
+
+```C#
+public async Task<bool> DeleteGameAsync(int id)
+{
+    var response = await http.DeleteAsync($"api/games/{id}");
+
+    if (response.StatusCode == HttpStatusCode.NotFound)
+        return false;
+
+    response.EnsureSuccessStatusCode();
+    return true;
+}
+```
+
+
+```C#
+// Deletes a game
+gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =>
+{
+    var deleted = await gamesService.DeleteGameAsync(id);
+
+    return deleted ? Results.NoContent() : Results.NotFound();
+});
+```
+
+Skrev opprinnelig oppdaterings apiet uten id. La senere merke til at Apiet skulle ha id. Fikk hjelp av KI til å rette dette med riktig kode på serversiden.
+Slet med implementering i tabellen og kjørte denne prompten: Står litt fast. Skal bygge om til oppdatering med id. 
+I tabellen skal jeg ha en kolonne der jeg skriver inn ny kategori og i kolonnen til høyre skal jeg ha lagring av ny kategori. Vis meg alle endringene jeg må gjøre.
+
+Svar: Måtte endre en del filer som fortsatt hadde mangler selvom jeg hadde forsøkt etter samme mal som med slette apiet.
+Se vedleggmappen etter: KI-bruk-oppdatering-av-kategori.pdf
+
+Senere ble denne oppdateringen bygget om grunnet at jeg hadde mistolket kravene til oppdaterings API-et. 
+
+
+Videre fikk man litt hjelp med å sette opp HttpClienten
+
+```C#
+builder.Services.AddHttpClient<GameApiClient>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
+```
+
+Adressen i appsettings.json:
+```json
+{
+  "ApiBaseUrl": "https://localhost:7259/",
+  "Logging": { ... }
+}
+```
+
+Prompt: tenkte å bruke et EditForm for delete også. Men der har jeg ingen modell. Hvordan er det vanlig å løse det. Svar kort
+Svar: Det vanlige er å ikke bruke EditForm til sletting. Legg heller en «Slett»-knapp på hver rad i tabellen som sender spillets id rett til metoden:
+```html
+<td><button @onclick="() => Delete(game.Id)">Slett</button></td>
+```
+
+Prompt: Har brukt Required og Range for å validere forespørsler med DataAnnotations tidligere. Men hvis man skal sammenlige og si at minimum ikke kan være større enn maksimum? 
+Hvordan gjøre det med DataAnnotations.
+
+Svar: 
+Det finnes ikke et ferdig attributt for å sammenligne to felt. [Compare] sjekker bare om to felt er like, for eksempel passord og bekreftet passord.
+Den vanlige løsningen er å la request-klassen implementere IValidatableObject og skrive regelen selv:
+
+```C#
+public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (MaxPlayers < MinPlayers)
+        {
+            yield return new ValidationResult(
+                "Maksimum spillere kan ikke være lavere enn minimum",
+                new[] { nameof(MaxPlayers) });
+        }
+    }
+```
+
+
+Ellers en del hjelp med feilmeldinger. 
+
+Prøvde å på egenhånd legge til bekreftelse på om admin virkelig ønsker å slette spill på admin siden. Fulgte samme oppsett som jeg hadde fått for bekreftelse av resetting av spillkveld.
+Fikk det ikke helt til da bekreftelsen ble vist for alle spill i tabellen. 
+
+Fikk dette svaret fra KI:
+
+Bytt bool (confirmReset) med en nullbar id:
+```C#
+private int? gameToDelete;
+```
+
+Sjekk om akkurat denne raden er den som skal slettes. Legg også knappene i en <td>, så HTML-en blir gyldig:
+
+```C#
+<td>
+	@if (gameToDelete == game.Id)
+	{
+		<p>Er du sikker på at spillet skal slettes? All lagret informasjon går tapt.</p>
+		<button class="btn btn-danger" @onclick="() => Delete(game.Id)">Ja, slett</button>
+		<button class="btn btn-secondary" @onclick="() => gameToDelete = null">Avbryt</button>
+	}
+	else
+	{
+		<button class="btn btn-outline-danger" @onclick="() => gameToDelete = game.Id">Slett spill</button>
+	}
+</td>
+```
+
+Nullstill etter slettingen:
+```
+await ApiClient.DeleteGameAsync(id);
+gameToDelete = null;
+await LoadGames();
+```
+
+Fikk også litt hjelp med riktig rekkefølge for brukermeldinger samt en validering som gjør at bruker får opp en feilmelding om to faner er oppe og bruker sletter spillet i begge faner.
+Testet det, men det funket ikke.
+Fikk Claude til å formulere hva som ble gjort da jeg er på noe tynn is akkurat her:
+
+Legg til innhold i 404-svarene i Program.cs. Uten innhold kjørte UseStatusCodePagesWithReExecute forespørselen på nytt mot /not-found, som ikke godtar DELETE, og klienten fikk 405. 
+Da viste adminsiden «Sletting av spill feilet». Med innhold får klienten 404, og siden viser «Spillet var allerede slettet».
+
+Konkret ble eksempelvis:
+```C#
+return deleted ? Results.NoContent() : Results.NotFound();
+```
+
+Til
+```
+return deleted ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
+```
+
+Som førte til at riktig feilmelding ble vist om to faner var oppe samtidig og jeg prøvde å slette spillet i begge. Feilmelding "Spillet var allerede slettet" ble vist.
+
+### Oppgave4 KI bruk tester
+Prompt: Hvordan stopper man et API. Bare kommentere det ut?
+
+Fikk til svar at man kunne bytte til en port som ingen bruker. Eks:
+```
+"ApiBaseUrl": "https://localhost:7999/"
+```
+Sa meg enig i at det var en god løsning. 
+
+Prompt: Hvordan sender man ugyldige data rett itl API-et fra en .http fil? Svar kort.
+
+Svar: Lag en fil i prosjektet, for eksempel AK2.http, via Add → New Item → HTTP File i Visual Studio.
+Skriv inn forespørslene, med ### mellom hver:
+
+Koden under er kun et utdrag av det man fikk:
+
+```http
+@baseUrl = https://localhost:7259
+
+### Tomt navn
+POST {{baseUrl}}/api/games
+Content-Type: application/json
+
+{ "name": "", "category": "Strategi", "minPlayers": 2, "maxPlayers": 4 }
+```
+
+Start appen, og klikk Send request over hver forespørsel. Svaret vises til høyre, og alle tre skal gi 400
+Bad Request med feilmeldingen fra ServerGamesService.
+
+Prompt: Kan man plusse slik: 
+```C#
+private void GoNext() => Nav.NavigateTo("/games/{Id:int+1}")
+```
+
+Svar: Bruk en interpolert streng med $ foran, og regn ut tallet inni krøllparentesen:
+```C#
+private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
+```
+
+### bUnit
+Jeg har ingen tidligere erfaring med bUnit så jeg valgte derfor å få KI til å lage en instruks til meg.
+Prompt: Gi meg et enkelt og pedagogisk eksempel på hvordan man kan teste komponenter med bUnit. 
+Gi meg et eksempel som tester at en komponent sender riktig verdi gjennom ValueChanged. Lever som PDF
+
+Prøvde å skrive test for DiceRating etter samme mønster. Men fikk det ikke helt til. 
+Ble en del frem og tilbake før man hadde skjønt opplegget. Ba Claude om å bygge inn feilene mine og løsning i PDFen 
+
+Se vedleggsmappen etter dokument bUnit-test-av-ValueChanged-med-feil.pdf
