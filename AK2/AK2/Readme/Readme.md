@@ -1711,15 +1711,15 @@ Se ReadmeTests.md i Readme mappen
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
 * Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
 
-* Med KI er det veldig lett å bli styrt på gale veier om man ikke er kritisk. Likte forslaget om lagring i nettleseren, men det kom med en kostnad i form av tid på implemetering og kodeforstålese.I tillegg er dette ekstra kode som skal vedlikeholdes. <br> 
-* Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI. <br>
-Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet. <br>
-* Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år. <br>
-Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. <br>
-* Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. <br>
-* Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :) <br>
-* Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. <br>
-Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. <br>
+* Med KI er det veldig lett å bli styrt på gale veier om man ikke er kritisk. Likte forslaget om lagring i nettleseren, men det kom med en kostnad i form av tid på implemetering og kodeforstålese.I tillegg er dette ekstra kode som skal vedlikeholdes. 
+* Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI. 
+Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet. 
+* Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år. 
+Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
+* Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. 
+* Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :) 
+* Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. 
+Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. 
 Totalt sett har man gjort mye feil, men det er vell faktisk det jeg har lært mest av :)
  
 # Andre kilder
