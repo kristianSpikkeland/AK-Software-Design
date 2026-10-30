@@ -1,4 +1,9 @@
-﻿# For oppgave 1
+﻿# Automatiske tester
+
+![Spillhylla](../Bilder/DokumentasjonTester.png)
+
+
+# For oppgave 1
 Noen av disse testene er også implemetert som automatiske tester.
 
 Testtilfelle: Søk etter et spill som ﬁnnes <br>
