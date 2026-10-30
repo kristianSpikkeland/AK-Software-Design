@@ -26,62 +26,12 @@ dotnet test
 
 ## Innholdsfortegnelse
 - [Oppgave 1](#oppgave-1)
-  - [Siden](#siden)
-  - [Info](#info)
-  - [Kode av siden Games](#kode-av-siden-games)
-  - [Kode av komponenten GameCard](#kode-av-komponenten-gamecard)
 - [Oppgave 2](#oppgave-2)
-  - [Siden](#siden-1)
-  - [Komponentdiagram](#komponentdiagram)
-  - [Parmetere og hendelser DiceRating](#parmetere-og-hendelser-dicerating)
-  - [Parmetere for GameCard](#parmetere-for-gamecard)
-  - [Parameter verdier ned for GameCard og DiceRating](#parameter-verdier-ned-for-gamecard-og-dicerating)
-  - [Videresending GameCard](#videresending-gamecard)
-  - [Kode av siden GamesDetails](#kode-av-siden-gamesdetails)
-  - [Kode av komponenten DiceRating](#kode-av-komponenten-dicerating)
 - [Oppgave 3](#oppgave-3)
-  - [Siden](#siden-2)
-  - [Teoridel tilstander](#teoridel-tilstander)
-  - [Kode av siden GameNight](#kode-av-siden-gamenight)
-  - [Kode av tilstandsklassen GameNightState](#kode-av-tilstandsklassen-gamenightstate)
 - [Oppgave 4](#oppgave-4)
-  - [Siden](#siden-3)
-  - [WebAssembly drøfting](#webassembly-drøfting)
-  - [Tjenester og DTO](#tjenester-og-dto)
-  - [Filter](#filter)
-  - [DTO til BoardGame](#dto-til-boardgame)
-  - [Rating](#rating)
-  - [Mulig forbedring API kall](#mulig-forbedring-api-kall)
-  - [PlayTimeMinutes](#playtimeminutes)
-  - [Totalvurderinger](#totalvurderinger)
-  - [Feilhåndtering](#feilhåndtering)
-  - [Suksesshåndtering](#suksesshåndtering)
-  - [Teoridel oppgave 4](#teoridel-oppgave-4)
-    - [Livssyklusmetode spillhylle](#livssyklusmetode-spillhylle)
-    - [Gjengivelsesmetode for applikasjonen](#gjengivelsesmetode-for-applikasjonen)
-  - [Hvor koden kjører](#hvor-koden-kjører)
-  - [Kode av siden AdminGames](#kode-av-siden-admingames)
-  - [Kode av API-et](#kode-av-api-et)
-  - [Kode av tjenesteklassen GameApiClient](#kode-av-tjenesteklassen-gameapiclient)
-  - [Kode av tjenesteklassen ServerGamesService](#kode-av-tjenesteklassen-servergamesservice)
 - [Oppgave 5](#oppgave-5)
-  - [Dokumentasjon](#dokumentasjon)
-    - [Ansvarsliste](#ansvarsliste)
-  - [Designvalg](#designvalg)
-    - [Problem velge gjengivelsesmodus](#problem-velge-gjengivelsesmodus)
-    - [Problem tilstandsbærer](#problem-tilstandsbærer)
-    - [Problem lagring av tilstand](#problem-lagring-av-tilstand)
-    - [Problem henting av totalvurdering](#problem-henting-av-totalvurdering)
-    - [Enkle endringer](#enkle-endringer)
-    - [Vanskelige endringer](#vanskelige-endringer)
-    - [Begrensninger](#begrensninger)
-  - [Manuell testlogg](#manuell-testlogg)
 - [Generell KI bruk](#generell-ki-bruk)
 - [KI refleksjoner](#ki-refleksjoner)
-- [Andre kilder](#andre-kilder)
-  - [Bilder](#bilder)
-    - [Faktisk resultat 375 px](#faktisk-resultat-375-px)
-    - [Faktisk resultat 1200 px](#faktisk-resultat-1200-px)
 
 ## Oppgave 1
 ### Siden
@@ -1886,7 +1836,7 @@ Se ReadmeTests.md i Readme mappen
 * Mye kvalitetskontroll av eget arbeid for å sikte forståelse og oppfylleslse av krav i oppgavetekst.
 * Spore fremdrift. Hvor mange prosent som gjenstår for hver oppgave. 
 * Litt Readme spørsmål. Blant annet hjelp til eksempler for kolapsing av innhold i Readme fil.
-* KI genererte innholdsfortegnelsen basert på min Readme fil og mine overskrifter. Limte den rett inn.
+* KI genererte innholdsfortegnelsen basert på min Readme fil og mine hovedoverskrifter.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
