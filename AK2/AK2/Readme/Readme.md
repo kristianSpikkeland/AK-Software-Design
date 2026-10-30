@@ -6,22 +6,22 @@
 ![FrontPage](../Bilder/FrontPage.png)
 
 ## Kjøring
-Programmet kjøres med play knappen. Utforming på denne avhengiger av kodeeditor. Alternativt kan man bruke terminalen:
+* Programmet kjøres med play knappen. Utforming på denne avhengiger av kodeeditor. Alternativt kan man bruke terminalen:
 ```txt
 dotnet run --project AK2 --launch-profile https
 ```
-For deretter å åpne nettleser med adressen: https://localhost:7259
+* For deretter å åpne nettleser med adressen: https://localhost:7259
 
-Det er satt opp et eget testprosjekt. Xunit og bUnit er brukt som et ekstra rammeverk for tester. Høyreklikk på testprosjekt med navn AK2Test og velg Run Tests. Alternativt i terminal:
+* Det er satt opp et eget testprosjekt. Xunit og bUnit er brukt som et ekstra rammeverk for tester. Høyreklikk på testprosjekt med navn AK2Test og velg Run Tests. Alternativt i terminal:
 ```
 dotnet test 
 ```
 
 ## Struktur
-For mer detajert KI bruk med blant annet spørsmål og svar. Se fil med navn: AI_Q&A.md <br>
-For PDFer som KI har produsert til meg se vedleggsmappen. <br>
-I vedleggsmappen ligger også tegninger relatert til oppgave 5. <br>
-Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokumentet. <br>
+* For mer detajert KI bruk med blant annet spørsmål og svar. Se fil med navn: AI_Q&A.md <br>
+* For PDFer som KI har produsert til meg se vedleggsmappen. [Vedleggsmappen](../../Vedlegg/) <br>
+* I vedleggsmappen ligger også tegninger relatert til oppgave 5. <br>
+* Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokumentet. <br>
 
 ## Oppgave 1
 ### Siden
