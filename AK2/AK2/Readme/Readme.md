@@ -276,6 +276,7 @@ IsSelected og hendelsene OnAdd og OnRemove er parametre som GameCard aldri sette
 ### Kode av siden GamesDetails
 <details>
 <summary>Klikk for å vise mer</summary>
+
 ```C#
 @page "/games/{Id:int}"
 @inject GameApiClient ApiClient
