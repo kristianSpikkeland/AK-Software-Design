@@ -859,6 +859,113 @@ Fikk en PDF fra KI som viser ombygging. Ba om en forklaring i siste avsnitt på 
 
 Kunne ha forsøkt meg på å lagre vurderingenen i nettleseren, men føler det gir liten verdi. Denne dataen burde egentlig ligge i en database.
 
+### Feilhåndtering
+Har fått god hjelp av KI for felhåndtering. På Admins siden er det lagt inn en rekke betingelser knyttet til hva brukeren ser: 
+
+```
+@* Shows the games *@
+@if (error is not null)
+{
+	<p style="color:red">@error</p>
+}
+
+@if (isLoading)
+{
+	<p>Laster spill...</p>
+}
+else if (games is null)
+{
+	@* Hentingen feilet, feilmeldingen står over *@
+}
+else if (!games.Any())
+{
+	<p>Det finnes ingen spill i samlingen.</p>
+}
+
+
+else
+{
+	@* Koden kjører som tiltenkt *@
+}
+```
+
+DataAnnotations for BoardGame og Request klassene sørger for validering av felt på klientsiden. Men dette er ingen trygg sikring. <br>
+Derfor er det lagt inn validering på server siden i ServerGamesService. På den måten unngår vi at brukeren ødelegger og legger inn ugyldige data.
+
+I forhold til ugyldige API kall vil brukeren få ulike beskjeder avhengig av handling. Man bør catche feilenen for API kall som går galt. Vi ønsker ikke at programmet krasjer da det gir dårlig brukeropplevelse.
+
+Under vises en et eksempel på en catch som vises om opprettelse av spill via API går galt:
+
+```razor
+catch
+{
+	error = "Kunne ikke opprette spillet";
+}
+```
+
+For at denne meldingen skal komme må brukeren klare å få sendt ugyldige data eller at API-et er nede. 
+
+* Validering av ugyldige data for opprettelse spill klientside
+```C#
+public class CreateGameRequest : IValidatableObject
+    {
+        [Required(ErrorMessage = "Kategori må fylles ut")]
+        public string Category { get; set; } = "";
+
+
+        [Required(ErrorMessage = "Navn må fylles ut")]
+        public string Name { get; set; } = "";
+
+        [Range(1, 4, ErrorMessage ="Ugyldig minimum antall spillere")]
+        public int MinPlayers { get; set; }
+
+        [Range(2, 20, ErrorMessage ="Ugyldig maksimum antall spillere")]
+        public int MaxPlayers { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (MaxPlayers < MinPlayers)
+            {
+                yield return new ValidationResult(
+                    "Maksimum spillere kan ikke være lavere enn minimum",
+                    new[] { nameof(MaxPlayers) });
+            }
+        }
+    }
+```
+
+* Validering av ugyldige data opprettelse spill Serverside
+```C#
+private static void ValidateGame(CreateGameRequest request)
+{
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        // Throw returns automaticly
+        throw new ArgumentException("Navn kan ikke være tomt");
+    }
+    if (string.IsNullOrWhiteSpace(request.Category))
+    {
+        throw new ArgumentException("Kategori kan ikke være tom");
+    }
+    if (request.MinPlayers < 1)
+    {
+        throw new ArgumentException("Minimum antall spillere må være minst 1");
+    }
+    if (request.MinPlayers > request.MaxPlayers)
+    {
+        throw new ArgumentException("Minimum antall spiller kan ikke være større enn maksimum");
+    }
+}
+```
+
+Throw sender feilmeldingen videre til endepunktet i Program.cs og blir til et 400 svar. <br>
+EnsureSuccessStatusCode() i GameApiClient kaster et nytt untak med HttpRequestException, når den ser 400. Det er det unntaket catch i AdminGames fanger. <br>
+
+
+Fikk påpekning av KI om at valideringsreglen på klientsiden er strengere enn på serversiden i forhold til antall spillere. Men anser det som ikke kritisk om en admin får lagt til feil for antall spillere ved å bevist unngå skjemaet.
+
+Fikk hjelp av KI til å få forklart catch flyten.
+
 ### Teoridel oppgave 4
 #### Livssyklusmetode spillhylle
 Som livssyklusmetode for spillhyllen valgte jeg OnInitializedAsync.
