@@ -1,6 +1,7 @@
 ﻿# Arbeidskrav Software Design
 * Utvikler: Kristian Spikkeland
 * Lenke til Github: https://github.com/kristianSpikkeland/AK-Software-Design.git
+* Videolenke: https://fagskoleniagder.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=4abd1125-d726-420b-b8f6-b4f300feca54&start=0
 
 ## Velkomstside
 ![FrontPage](../Bilder/FrontPage.png)
@@ -1817,6 +1818,7 @@ En del drøftinger med KI rundt designvalgene. Spesielt rundt tilstandsbærer Ga
 #### Begrensninger
 * Misforsto meningen med PlayTimeMinutes. Den valideringen er ikke aktuell med min implementasjon.
 * Kunne gjort mer rundt terningkast og tilfeldig spill, men valgte å holde det minimalistisk.
+* Admin side er ikke egnet for mobil. For bred tabell.
 
 ### Manuell testlogg
 Se ReadmeTests.md i Readme mappen
