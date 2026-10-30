@@ -8,11 +8,11 @@
 ## Kjøring
 Programmet kjøres med play knappen. Utforming på denne avhengiger av kodeeditor. Alternativt kan man bruke terminalen:
 ```txt
-dotnet run --project AK2
+dotnet run --project AK2 --launch-profile https
 ```
 For deretter å åpne nettleser med adressen: https://localhost:7259
 
-Det er satt opp et eget testprosjekt. Xunit og bUnit er brukt som et ekstra rammeverk for tester. Høyreklikk på testprosjekt med navn TestAlgo og velg Run Tests. Alternativt i terminal:
+Det er satt opp et eget testprosjekt. Xunit og bUnit er brukt som et ekstra rammeverk for tester. Høyreklikk på testprosjekt med navn AK2Test og velg Run Tests. Alternativt i terminal:
 ```
 dotnet test 
 ```
@@ -35,7 +35,189 @@ På samme grunnlag er derfor filteret for antall spillere bakt inn sammen med na
 Videre har man tenkt en del rundt hvordan man kan lage en løsning som skalerer. Det å ha en GamesDetails side istedenfor en side per spill
 har jeg ansett som gunstig.
 
+### Kode av siden Games
 
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```
+@page "/games";
+@inject GameApiClient ApiClient
+@inject GameNightState GameNight
+@rendermode InteractiveServer
+@implements IDisposable
+
+
+
+<h2>Brettspill</h2>
+
+<div class="search-box">
+	<input type="search" autofocus @bind="nameFilter" @bind:event="oninput" @bind:after="ApplyFilter" 
+		placeholder="Navn" />
+
+	<input type="number" min="1" @bind="playerFilter" @bind:event="oninput" @bind:after="ApplyFilter"
+		   placeholder="Antall spillere" />
+</div>
+
+
+@if (isLoading)
+{
+    <p>Laster spill...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+else if (!games.Any())
+{
+    <p>Det finnes ingen spill i samlingen.</p>
+}
+else if (!filteredGames.Any())
+{
+    <p style="color:red">Ingen treff</p>
+}
+
+<div class="game-grid">
+	@foreach (var game in filteredGames)
+	{
+		<div class="game-cell" @key="game.Id">
+			<GameCard BoardGame="game"
+					  IsSelected="GameNight.Contains(game.Id)"
+					  OnAdd="HandleAdd"
+					  OnRemove="HandleRemove" />
+
+			@if (messages.TryGetValue(game.Id, out var msg))
+			{
+				<p>@msg</p>
+			}
+
+			<a href="/games/@game.Id">Detaljer</a>
+		</div>
+	}
+</div>
+
+<br />
+<br />
+
+<p>Antall treff: @filteredGames.Count()</p>
+
+
+<button @onclick="ShowRandomGame">Tilfeldig spill</button>
+
+@if (randomGame != null)
+{
+	<p>@randomGame.Name</p>
+}
+
+
+
+@code {
+	private IReadOnlyList<BoardGame> games = [];
+	private bool isLoading = true;
+	private string? error;
+
+	string nameFilter = string.Empty;
+	int? playerFilter;
+
+	public BoardGame? randomGame;
+
+
+	// Using StringComparison.CurrentCultureIgnoreCase to allow both uppercase and lowercase letters
+	IEnumerable<BoardGame> filteredGames = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		Console.WriteLine($"Games.OnInitializedAsync kjører. Renderer: {RendererInfo.Name}, interaktiv: {RendererInfo.IsInteractive}");
+		GameNight.OnChange += OnGameNightChanged;
+		try
+		{
+			games = await ApiClient.GetGamesAsync();
+			ApplyFilter();
+		}
+
+		catch (HttpRequestException)
+		{
+        error = "Kunne ikke hente spillene. Prøv igjen senere.";
+		}
+
+		finally
+		{
+        isLoading = false;
+		}			
+	}
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
+	private void ApplyFilter()
+	{
+		var byName = GameFilter.FilterGames(nameFilter, games);
+		filteredGames = GameFilter.FilterByPlayers(playerFilter, byName).ToList();
+	}
+
+
+	private async Task ShowRandomGame()
+	{
+		randomGame = GameFilter.GetRandomGame(games);
+	}
+
+
+	private readonly Dictionary<int, string> messages = new();
+
+	private async Task HandleAdd(BoardGame game)
+	{
+		var text = await GameNight.AddAsync(game)
+		? "Spillet ble lagt til"
+		: "Spillet er allerede lagt til";
+
+		messages[game.Id] = text;
+		StateHasChanged();               // ← vis meldingen nå
+
+		await Task.Delay(3000);
+
+		// Fjern bare hvis det fortsatt er denne meldingen
+		if (messages.TryGetValue(game.Id, out var current) && current == text)
+			messages.Remove(game.Id);
+	
+	}
+	private async Task HandleRemove(BoardGame game) => await GameNight.RemoveAsync(game.Id);
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+}
+
+```
+
+</details>
+
+### Kode av komponenten GameCard
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+@inject GameNightState GameNight
+
+<div class= "gameCard">
+	<h2>@BoardGame.Name</h2>
+	<p>Minimum spillere: @BoardGame.MinPlayers</p>
+	<p>Maksimum spillere: @BoardGame.MaxPlayers</p>
+	<p>Kategori: @BoardGame.Category</p>
+	<DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
+
+	<GameNightButton Game="BoardGame" IsSelected="IsSelected" OnAdd="OnAdd" OnRemove="OnRemove" />
+	
+</div>
+
+@code {
+	[Parameter] public BoardGame? BoardGame { get; set; }
+
+	[Parameter] public EventCallback<BoardGame> OnAdd { get; set; }
+
+	[Parameter] public EventCallback<BoardGame> OnRemove { get; set; }
+
+	[Parameter] public bool IsSelected { get; set; }
+}
+```
+
+</details>
 
 ## Oppgave 2
 ### Siden
@@ -91,6 +273,243 @@ Legg merke til hvordan GameCard setter komponenten GameNightButton:
 
 IsSelected og hendelsene OnAdd og OnRemove er parametre som GameCard aldri setter men bringer videre. GameCard funker som et mellomledd for disse parametrene mellom Games og GameNightButton.  
 
+### Kode av siden GamesDetails
+<details>
+<summary>Klikk for å vise mer</summary>
+```C#
+@page "/games/{Id:int}"
+@inject GameApiClient ApiClient
+@inject GameNightState GameNight
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+@implements IDisposable
+
+@if (isLoading)
+{
+    <p>Laster spill...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+
+else if (game is not null)
+{
+	<h1>Detaljer</h1>
+	<p>Id: @game.Id</p>
+	<p>Navn: @game.Name</p>
+	<p>Kategori: @game.Category</p>
+	<p>Minimum spillere: @game.MinPlayers</p>
+	<p>Maksimum spillere: @game.MaxPlayers</p>
+	<p>Beskrivelse: @game.Description</p>
+	<br />
+
+	<GameNightButton Game="game"
+                     IsSelected="GameNight.Contains(game.Id)"
+                     OnAdd="HandleAdd"
+                     OnRemove="HandleRemove" />
+	
+	@* Adding message to user if game was added to game night*@
+	@if (message is not null)
+    {
+        <p>@message</p>
+    }
+
+	<DiceRating @ref="diceRating" BoardGame="game" @key="game.Id" ReadOnly="false"
+				@bind-Value="game.Rating" @bind-Value:after="UpdateRating" />
+}
+
+else
+{
+	<p>Spill ikke funnet</p>
+}
+
+<button class="next-game" @onclick="GoNext">Neste spill</button>
+<br />
+<button @onclick="GoBack">Til oversikt</button>
+
+@code {
+	[Parameter] public int Id { get; set; }
+
+	private BoardGame? game;
+
+	private bool isLoading = true;
+
+	private string? error;
+
+	// The DiceRating component rendered on this page
+	private DiceRating? diceRating;
+
+
+	private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
+
+	protected override void OnInitialized()
+	{
+		GameNight.OnChange += OnGameNightChanged;
+	}
+
+
+
+	protected override async Task OnParametersSetAsync()
+	{
+		isLoading = true;
+		error = null;
+		game = null;
+
+		try
+		{
+			game = await ApiClient.GetGameByIdAsync(Id);
+
+			if (game is null)
+			{
+				Nav.NotFound();
+			}
+		}
+
+		catch (HttpRequestException)
+		{
+			error = "Kunne ikke hente spillet. Prøv igjen senere.";
+		}
+
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	private void GoBack() => Nav.NavigateTo("/games");
+
+	private void GoNext() => Nav.NavigateTo($"/games/{Id + 1}");
+
+	private string? message;
+
+	private async Task HandleAdd(BoardGame g)
+	{
+		message = await GameNight.AddAsync(g) ? "Spillet ble lagt til" : "Spillet er allerede lagt til";
+		StateHasChanged();
+
+		await Task.Delay(3000);
+		message = null;
+	}
+
+	private async Task HandleRemove(BoardGame g) => await GameNight.RemoveAsync(g.Id);
+
+	public void Dispose() => GameNight.OnChange -= OnGameNightChanged;
+
+
+
+	private async Task UpdateRating()
+	{
+		try
+		{
+			await ApiClient.UpdateRatingAsync(Id, new UpdateRatingRequest { Rating = game!.Rating });
+
+			// Fetches the new total in the DiceRating shown on the page
+			if (diceRating is not null)
+			{
+				await diceRating.RefreshTotalAsync();
+			}
+		}
+		catch
+		{
+			error = "Oppdatering av vurdering feilet";
+		}
+	}
+
+}
+```
+
+</details>
+
+### Kode av komponenten DiceRating
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+@inject GameApiClient ApiClient
+
+<h3>Terningkast 🎲</h3>
+
+@if (error is not null)
+{
+    <p style="color:red">@error</p>
+}
+
+<p>Totalvurdering av spillet: @totalRating?.ToString("0.0")</p>
+
+<p>Din vurdering: @Value</p>
+
+@if (ReadOnly == false)
+{
+	<p>Terning skal trilles for spillet 😊</p>
+
+	<div>
+		<label>Ditt terningkast: <input type="number" min="1" max="6" @bind="newValue" /></label>
+		<button type="button" @onclick="SaveAsync">Lagre vurdering</button>
+	</div>
+
+	@if (validationMessage is not null)
+	{
+		<p style="color:red">@validationMessage</p>
+	}
+}
+
+
+
+@code {
+	[Parameter] public BoardGame? BoardGame { get; set; }
+	[Parameter] public int Value { get; set; }
+	[Parameter] public EventCallback<int> ValueChanged { get; set; }
+	[Parameter] public bool ReadOnly { get; set; } = true;
+
+	// Local copy, so the component never changes its own Value parameter
+	private int newValue;
+	private string? validationMessage;
+	private string? error { get; set; }
+	  
+	private double? totalRating;
+
+	protected override void OnParametersSet() => newValue = Value;
+
+	private async Task SaveAsync()
+	{
+		if (newValue is < 1 or > 6)
+		{
+			validationMessage = "Terningkastet må være fra 1 til 6";
+			return;
+		}
+
+		validationMessage = null;
+
+		// Tells the parent about the new value
+		await ValueChanged.InvokeAsync(newValue);
+	}
+
+	
+	protected override async Task OnInitializedAsync() => await RefreshTotalAsync();
+
+	
+	// Called by the parent after a new rating is saved
+	public async Task RefreshTotalAsync()
+	{
+		try
+		{
+			totalRating = await ApiClient.GetTotalRatingByGame(BoardGame!.Id);
+			error = null;
+		}
+		catch
+		{
+			error = "Henting av total vurdering feilet";
+		}
+		StateHasChanged();
+	}
+
+}
+```
+
+</details>
+
 ## Oppgave 3
 ### Siden
 ![GamesNightPage](../Bilder/GameNightPage.png)
@@ -119,6 +538,214 @@ Løsningen ble å bygge om til nettlesrlagring med ProtectedLocalStorage. Se i v
 
 Etter endringen med å legge til nettleser lagring kan jeg ha flere faner opp og endringene i en fane blir oppdatert i de andre når siden refreshes.
 Om nettleser lukkes og åpnes igjen så er tilstanden fortsatt lagret.
+
+### Kode av siden GameNight
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+@page "/game-night";
+@inject GameNightState GameNight
+@implements IDisposable
+
+<h1>Spillkveld</h1>
+<h3>Valgte spill: </h3>
+
+@foreach (var game in GameNight.Games)
+{
+	<div class="game-box">
+		<h3>@game.Name</h3>
+		<StartStopGame GameId="game.Id" OnGameEnded="StateHasChanged" />
+	</div>
+}
+
+<p>Total spilletid: @GameNight.TotalPlayTime.ToString(@"hh\:mm\:ss")</p>
+
+<p>Antall treff: @GameNight.Games.Count()</p>
+
+
+@if (confirmReset)
+{
+	<p>Er du sikker på at spillkveld skal nullstilles? All lagret informasjon går tapt.</p>
+	<button class="btn btn-danger" @onclick="ResetGameNight">Ja, nullstill</button>
+	<button class="btn btn-secondary" @onclick="() => confirmReset = false">Avbryt</button>
+}
+
+else
+{
+	<button class="btn btn-outline-danger"
+        disabled="@(GameNight.Count == 0)"
+        @onclick="() => confirmReset = true">
+    Nullstill spillkvelden
+	</button>
+}
+
+<p><a href="/">Til forside</a></p>	
+
+@code {
+    private bool confirmReset;
+    private PeriodicTimer? timer;
+
+    protected override void OnInitialized()
+    {
+        GameNight.OnChange += OnGameNightChanged;
+        _ = RunTimerAsync();
+    }
+
+    private void OnGameNightChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task RunTimerAsync()
+    {
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
+        while (await timer.WaitForNextTickAsync())
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task ResetGameNight()
+    {
+        await GameNight.ClearAsync();
+        confirmReset = false;
+    }
+
+    public void Dispose()
+    {
+        GameNight.OnChange -= OnGameNightChanged;
+        timer?.Dispose();
+    }
+}
+```
+
+</details>
+
+### Kode av tilstandsklassen GameNightState
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+public class GameNightState(ProtectedLocalStorage storage)
+{
+    public int Count => games.Count;
+
+
+    private readonly List<BoardGame> games = new();
+    public IReadOnlyList<BoardGame> Games => games;
+
+    public BoardGame? GetGameById(int id) =>
+        games.FirstOrDefault(g => g.Id == id);
+
+    // The bell
+    public event Action? OnChange;
+
+    public bool Contains(int gameId) => games.Any(g => g.Id == gameId);
+
+    public async Task<bool> AddAsync(BoardGame game)
+    {
+        // Early return if BoradGame allready exists
+        if (Contains(game.Id)) return false;
+
+        games.Add(game);
+        await SaveAsync();
+
+        // Ring the bell
+        OnChange?.Invoke();
+            
+        return true;            
+    }
+
+    public async Task RemoveAsync(int gameId)
+    {
+        games.RemoveAll(g => g.Id == gameId);
+        await SaveAsync();
+        OnChange?.Invoke();
+    }
+
+    // Resets the game night
+    public async Task ClearAsync()
+    {
+        games.Clear();
+        await SaveAsync();
+        OnChange?.Invoke();
+    }
+
+    #region Browser storage (ProtectedLocalStorage)
+
+    private const string StorageKey = "gameNight";
+    private bool loaded;
+
+    // Loads the game night form the browser once per circuit.
+    // Called from MainLayout after the first render.
+
+    public async Task LoadAsync()
+    {
+        if (loaded) return;
+        loaded = true;
+
+        try
+        {
+            var result = await storage.GetAsync<List<BoardGame>>(StorageKey);
+
+            if (result.Success && result.Value is not null)
+            {
+                games.Clear();
+                games.AddRange(result.Value);
+                OnChange?.Invoke();
+            }
+        }
+
+        catch (CryptographicException)
+        {
+            // Stored data can no longer be decrypted, start fresh
+            await storage.DeleteAsync(StorageKey);
+        }
+    }
+
+    // Saves the current list, or removes the key when the list is empty
+    private async Task SaveAsync()
+    {
+        if (games.Count == 0)
+        {
+            await storage.DeleteAsync(StorageKey);
+        }
+
+        else
+        {
+            await storage.SetAsync(StorageKey, games);
+        }
+    }
+
+    #endregion
+
+    public async Task StartAsync(int gameId)
+    {
+        var game = GetGameById(gameId);
+        if (game is null || game.StartedAt is not null) return; // går allerede
+        game.StartedAt = DateTime.UtcNow;
+        await SaveAsync();
+        OnChange?.Invoke();
+    }
+    public async Task StopAsync(int gameId)
+    {
+        var game = GetGameById(gameId);
+        if (game?.StartedAt is null) return; // går ikke
+        game.PlayTime += DateTime.UtcNow - game.StartedAt.Value;
+        game.StartedAt = null;
+        await SaveAsync();
+        OnChange?.Invoke();
+    }
+    public TimeSpan GetLiveTime(BoardGame game) =>
+        game.StartedAt is null
+            ? game.PlayTime
+            : game.PlayTime + (DateTime.UtcNow - game.StartedAt.Value);
+
+    public TimeSpan TotalPlayTime =>
+        games.Aggregate(TimeSpan.Zero, (sum, g) => sum + GetLiveTime(g));
+}
+```
+
+</details>
 
 ## Oppgave 4
 ### Siden
@@ -323,7 +950,6 @@ Via menyen er appen allerede tilkoblet. Blazor bytter side uten ny innlasting, s
 Valgte å ikke slå av noen forhåndsrendring da det er greit for bruker å kunne se dataen selvom siden ikke er interaktiv enda.
 
 
-
 #### Gjengivelsesmetode for applikasjonen
 Har skrevet litt om dette tidligere og angringen rundt å ikke velge Interactive WebAssembly for å ha en tydligere klientside, 
 eller i mange tilfeller enda bedre Interactive Auto grunnet muligheten for interaktrivitet på siden frem til WebAssembly-filene er lastet ned.
@@ -351,6 +977,610 @@ Rettelse: KI mener at denne krypteringen er vanskelig å knekke. Det gjenstår �
 
 Viktig! Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikre at man forstår ting riktig.
 
+### Kode av siden AdminGames
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+@page "/admin/games"
+@inject GameApiClient ApiClient
+
+<h3>AdminGames</h3>
+
+@* Creates a new game *@
+<EditForm Model="NewGame" OnValidSubmit="Create">
+
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+
+	<label>Navn: <InputText @bind-Value="NewGame.Name" /></label>
+
+	<label>Kategori: <InputText @bind-Value="NewGame.Category" /></label>
+
+	<label>Minimum spillere: <InputNumber @bind-Value="NewGame.MinPlayers" step="1" /></label>
+
+	<label>Maksimum spillere <InputNumber @bind-Value="NewGame.MaxPlayers" step="1" /></label>
+
+	<button type="submit">Legg til</button>
+</EditForm>
+<br />
+<br />
+
+@* Changes an existing game. Shown when "Endre" is clicked in the table *@
+@if (editingGameId is not null)
+{
+	<h4>Endre spill (Id @editingGameId)</h4>
+
+	<EditForm Model="EditGame" OnValidSubmit="SaveEdit">
+
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+
+		<label>Navn: <InputText @bind-Value="EditGame.Name" /></label>
+
+		<label>Kategori: <InputText @bind-Value="EditGame.Category" /></label>
+
+		<label>Minimum spillere: <InputNumber @bind-Value="EditGame.MinPlayers" step="1" /></label>
+
+		<label>Maksimum spillere <InputNumber @bind-Value="EditGame.MaxPlayers" step="1" /></label>
+
+		<button type="submit">Lagre endringer</button>
+		<button type="button" @onclick="CancelEdit">Avbryt</button>
+	</EditForm>
+	<br />
+}
+
+@* Shows the games *@
+@if (error is not null)
+{
+	<p style="color:red">@error</p>
+}
+
+@if (isLoading)
+{
+	<p>Laster spill...</p>
+}
+else if (games is null)
+{
+	@* Hentingen feilet, feilmeldingen står over *@
+}
+else if (!games.Any())
+{
+	<p>Det finnes ingen spill i samlingen.</p>
+}
+
+
+
+else
+{
+	<table border="1" cellpadding="8">
+		<thead>
+			<tr>
+				<th>Id</th>
+				<th>Navn</th>
+				<th>Minimum spillere</th>
+				<th>Maksimum spillere</th>
+				<th>Kategori</th>
+				<th>Endre</th>
+				<th>Slett</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach (var game in games)
+			{
+				<tr>
+					<td>@game.Id</td>
+					<td>@game.Name</td>
+					<td>@game.MinPlayers</td>
+					<td>@game.MaxPlayers</td>
+					<td>@game.Category</td>
+					<td><button @onclick="() => StartEdit(game)">Endre</button></td>
+
+					<td>
+						@if (gameToDelete == game.Id)
+						{
+							<p>Er du sikker på at spillet skal slettes?</p>
+							<button class="btn btn-danger" @onclick="() => Delete(game.Id)">Ja, slett</button>
+							<button class="btn btn-secondary" @onclick="() => gameToDelete = null">Avbryt</button>
+						}
+						else
+						{
+							<button class="btn btn-outline-danger" @onclick="() => gameToDelete = game.Id">Slett spill</button>
+						}
+					</td>
+
+				</tr>
+			}
+		</tbody>
+	</table>
+
+
+}
+
+@code {
+	private IReadOnlyList<BoardGame>? games;
+	private string? error { get; set; }
+	private bool isLoading = true;
+
+	private CreateGameRequest NewGame { get; set; } = new();
+	private int? gameToDelete;
+
+	private async Task LoadGames()
+	{
+		try
+		{
+			games =
+				await ApiClient.GetGamesAsync();
+
+			error = null;
+		}
+		catch
+		{
+			error = $"Kunne ikke hente spillet ";
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadGames();
+	}
+
+	private async Task Create()
+	{
+		try
+		{
+			var createdGame = await ApiClient.CreateGameAsync(NewGame);
+
+			// Resets user window
+			NewGame = new CreateGameRequest();
+
+			// Adds the returned game to the list, instead of fetching all games again
+			games = [.. games ?? [], createdGame];
+			error = null;
+		}
+
+		catch
+		{
+			error = "Kunne ikke opprette spillet";
+		}
+
+
+	}
+
+
+	private async Task Delete(int id)
+	{
+		try
+		{
+			var deleted = await ApiClient.DeleteGameAsync(id);
+
+			gameToDelete = null;
+			await LoadGames();
+
+			// Set after LoadGames, which clears error
+			if (!deleted)
+			{
+				error = "Spillet var allerede slettet";
+			}
+		}
+		catch
+		{
+			error = "Sletting av spill feilet";
+		}
+	}
+
+</details>
+
+
+
+	// The id of the game being changed. Null when the edit form is hidden
+	private int? editingGameId;
+	private UpdateGameRequest EditGame { get; set; } = new();
+
+	// Fills the edit form with the current values of the game
+	private void StartEdit(BoardGame game)
+	{
+		editingGameId = game.Id;
+		EditGame = new UpdateGameRequest
+		{
+			Name = game.Name,
+			Category = game.Category,
+			MinPlayers = game.MinPlayers,
+			MaxPlayers = game.MaxPlayers
+		};
+	}
+
+	private void CancelEdit() => editingGameId = null;
+
+	private async Task SaveEdit()
+	{
+		if (editingGameId is not int id)
+			return;
+
+		try
+		{
+			var updatedGame = await ApiClient.UpdateGameAsync(id, EditGame);
+
+			editingGameId = null;
+
+			if (updatedGame is null)
+			{
+				// The game was deleted in the meantime, so it is removed from the list as well
+				games = games?.Where(g => g.Id != id).ToList();
+				error = "Spillet finnes ikke lenger";
+				return;
+			}
+
+			// Replaces only the changed game in the list, instead of fetching all games again
+			games = games?.Select(g => g.Id == id ? updatedGame : g).ToList();
+			error = null;
+		}
+
+		catch
+		{
+			error = "Kunne ikke oppdatere spillet";
+		}
+	}
+}
+```
+
+</details>
+
+### Kode av API-et
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```
+// Creates a group. Authorization can be added later
+var gamesApi = app.MapGroup("/api/games");
+
+gamesApi.MapPost("", async (CreateGameRequest request, ServerGamesService gameService) =>
+{
+    try
+    {
+        var game = await gameService.CreateGameAsync(request);
+
+        return Results.Created($"/api/games/{game.Id}", game);
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+
+gamesApi.MapGet("", async (ServerGamesService gameService) =>
+{
+    var games = await gameService.GetAllGamesAsync();
+    return Results.Ok(games);
+});
+
+
+
+gamesApi.MapGet("{id:int}", async (int id, ServerGamesService gameService) =>
+{
+    var game = await gameService.GetGameByIdAsync(id);
+    return game is null ? Results.NotFound() : Results.Ok(game);
+});
+
+
+gamesApi.MapGet("{id:int}/totalRatingByGame", async (int id, ServerGamesService gameService) =>
+{
+    var rating = await gameService.GetTotalRatingByGame(id);
+    return Results.Ok(rating);
+});
+
+
+// Updates the whole game. 200 with the updated game, 400 on invalid data, 404 when the id does not exist
+gamesApi.MapPut("{id:int}", async (int id, UpdateGameRequest request, ServerGamesService gamesService) =>
+{
+    try
+    {
+        var game = await gamesService.UpdateGameAsync(id, request);
+
+        return game is null ? Results.NotFound(new { error = "Spillet finnes ikke" }) : Results.Ok(game);
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+
+// Updates game category
+gamesApi.MapPut("{id:int}/category", async (int id, ServerGamesService gamesService, UpdateCategoryRequest request) =>
+{
+    try
+    {
+        var updated = await gamesService.UpdateCategoryAsync(id, request);
+
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+gamesApi.MapPut("{id:int}/rating", async (int id, ServerGamesService gamesService, UpdateRatingRequest request) =>
+{
+    try
+    {
+        var updated = await gamesService.UpdateRatingAsync(id, request);
+
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
+    }
+
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+});
+
+
+gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =>
+{
+    var deleted = await gamesService.DeleteGameAsync(id);
+
+    return deleted ? Results.NoContent() : Results.NotFound(new { error = "Spillet finnes ikke" });
+}); 
+```
+
+</details>
+
+### Kode av tjenesteklassen GameApiClient
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```
+public sealed class GameApiClient(HttpClient http)
+{
+    public async Task<BoardGame> CreateGameAsync(CreateGameRequest request)
+    {
+        var response = await http.PostAsJsonAsync("api/games", request);
+        response.EnsureSuccessStatusCode();
+
+        var dto = await response.Content.ReadFromJsonAsync<GameDTO>()
+            ?? throw new HttpRequestException("API-et returnerte ikke spillet");
+        return ToBoardGame(dto);
+    } 
+
+        
+
+    public async Task<bool> DeleteGameAsync(int id)
+    {
+        var response = await http.DeleteAsync($"api/games/{id}");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return true;
+
+    }
+
+    // Returns the updated game, or null when the id does not exist (404)
+    public async Task<BoardGame?> UpdateGameAsync(int id, UpdateGameRequest request)
+    {
+        var response = await http.PutAsJsonAsync($"api/games/{id}", request);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        response.EnsureSuccessStatusCode();
+        var dto = await response.Content.ReadFromJsonAsync<GameDTO>()
+            ?? throw new HttpRequestException("API-et returnerte ikke spillet");
+        return ToBoardGame(dto);
+    }
+
+
+    private static BoardGame ToBoardGame(GameDTO dto) =>
+        new(dto.Name, dto.MinPlayers, dto.MaxPlayers, dto.Category)
+        {
+            Id = dto.Id,
+            Rating = dto.Rating,
+            Description = dto.Description
+        };
+
+    public async Task<BoardGame?> GetGameByIdAsync(int id)
+    {
+        var response = await http.GetAsync($"api/games/{id}");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        response.EnsureSuccessStatusCode();
+        var dto = await response.Content.ReadFromJsonAsync<GameDTO>();
+        return dto is null ? null : ToBoardGame(dto);
+    }
+
+    public async Task<IReadOnlyList<BoardGame>> GetGamesAsync()
+    {
+        var dtos = await http.GetFromJsonAsync<GameDTO[]>("api/games") ?? [];
+        return dtos.Select(ToBoardGame).ToArray();
+    }
+
+    public async Task<double?> GetTotalRatingByGame(int id)
+    {
+        var response = await http.GetAsync($"api/games/{id}/totalRatingByGame");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<double>();
+    }
+
+
+
+    public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
+    {
+        var response = await http.PutAsJsonAsync($"api/games/{id}/category", request);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return true;
+    }
+
+    public async Task<bool> UpdateRatingAsync(int id, UpdateRatingRequest request)
+    {
+        var response = await http.PutAsJsonAsync($"api/games/{id}/rating", request);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return true;
+    }
+
+}
+```
+
+</details>
+
+### Kode av tjenesteklassen ServerGamesService
+<details>
+<summary>Klikk for å vise mer</summary>
+
+```C#
+    public sealed class ServerGamesService(GamesStorageAndQuery query)
+    {
+
+        // The same rules apply when a game is created and when it is changed, so the validation is written once
+        private static void ValidateGame(CreateGameRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                // Throw returns automaticly
+                throw new ArgumentException("Navn kan ikke være tomt");
+            }
+            if (string.IsNullOrWhiteSpace(request.Category))
+            {
+                throw new ArgumentException("Kategori kan ikke være tom");
+            }
+            if (request.MinPlayers < 1)
+            {
+                throw new ArgumentException("Minimum antall spillere må være minst 1");
+            }
+            if (request.MinPlayers > request.MaxPlayers)
+            {
+                throw new ArgumentException("Minimum antall spiller kan ikke være større enn maksimum");
+            }
+        }
+
+        public async Task<GameDTO> CreateGameAsync(CreateGameRequest request)
+        {
+            ValidateGame(request);
+
+            // If all validation passes, then its safe to call the data layer
+            var game = await query.CreateGameAsync(request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
+
+            return ToDto(game);
+        }
+
+
+        // Updates the whole game. Returns null when the id does not exist
+        public async Task<GameDTO?> UpdateGameAsync(int id, UpdateGameRequest request)
+        {
+            ValidateGame(request);
+            var game = await query.UpdateGameAsync(id, request.Name, request.MinPlayers, request.MaxPlayers, request.Category);
+            return game is null ? null : ToDto(game);
+        }
+
+        public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryRequest request)
+        {
+            // Adds validation
+            if (string.IsNullOrWhiteSpace(request.Category))
+            {
+                throw new ArgumentException("Kategori kan ikke være tom");
+            }
+
+            // If all validation passes, then its safe to call the data layer
+            return await query.UpdateCategoryAsync(id, request.Category);
+        }
+
+        public async Task<bool> UpdateRatingAsync(int id, UpdateRatingRequest request)
+        {
+            // Adds validation
+            if (request.Rating <1)
+            {
+                throw new ArgumentException("Vurdering kan ikke være mindre enn 1");
+            }
+
+            if (request.Rating > 6)
+            {
+                throw new ArgumentException("Vurdering kan ikke være større enn 6");
+            }
+
+            // If all validation passes, then its safe to call the data layer
+            return await query.UpdateRatingAsync(id, request.Rating);
+        }
+
+
+        private static GameDTO ToDto(BoardGame game) => new(
+            game.Id,
+            game.Name,
+            game.Category,
+            game.MinPlayers,
+            game.MaxPlayers,
+            game.Rating,
+            game.Description);
+
+
+        public async Task<IReadOnlyList<GameDTO>> GetAllGamesAsync()
+        {
+            var games = await query.GetAllGamesAsync();
+            return games.Select(ToDto).ToArray();
+        }
+  
+
+        public async Task<GameDTO?> GetGameByIdAsync(int id)
+        {
+            var game = await query.GetGameByIdAsync(id);
+            return game is null ? null : ToDto(game);
+        }
+
+        public async Task<bool> DeleteGameAsync(int id)
+        {
+            return await query.DeleteGameAsync(id);
+        }
+
+        public async Task<double> GetTotalRatingByGame(int id)
+        {
+            return await query.GetTotalRatingByGame(id);
+        }
+    }
+```
+
+</details>
 
 ## Oppgave 5
 ### Dokumentasjon
@@ -402,6 +1632,7 @@ Synes allikevell at det er verdt å trekke frem da det gjorde prosjektstrukturen
 Det er en fordel med tanke på at denne klassen er injectet mange plasser. 
 Kostnaden med designvalget er at komponentene må abonnere på OnChange og melde seg av i Dispose. 
 I tillegg må man sette opp en egen klasse. Kunne droppet klassen og spredt logikken, men det hadde blitt veldig ugunstig og dårlig.
+
 Tilstander kunne blitt overført via Parameter og EventCallback eller med Cascading values. Men etter litt drøftinger med Claude viser det seg at Parameter og EventCallback ikke er reelt alternativ.
 En trestruktur er ikke egnet for en slik tilstand da den brukes av flere grener. Parameter og EventCallback er beregnet for en gren og ikke på kryss og tvers.
 Kunne vist brukt Cascading Values fra MainLayout der hver endring hadde tegnet alt under layouten på nytt. Synes egentlig at det virket som en spennende tanke. Kanskje kunne det forenklet koden?
@@ -453,6 +1684,9 @@ Kanskje kunne man droppet nettleserlagring og lagret til SqlLite?
 
 En del drøftinger med KI rundt designvalgene. Spesielt rundt tilstandsbærer GameNightState og alternative måter. Fikk ideer og frisket opp argumentasjon som var glemt :)
 
+#### Begrensninger
+* Misforsto meningen med PlayTimeMinutes. Den valideringen er ikke aktuell med min implementasjon.
+* Kunne gjort mer rundt terningkast og tilfeldig spill, men valgte å holde det minimalistisk.
 
 ### Manuell testlogg
 Se ReadmeTests.md i Readme mappen
@@ -476,28 +1710,28 @@ Se ReadmeTests.md i Readme mappen
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
 * Ba om venstrejustert meny. Fikk en løsning der menyen var plassert i toppen. Videre var teksten grå og lite synlig. Ny prompt løste det.
 
-Med KI er det veldig lett å bli styrt på gale veier om man ikke er kritisk. Likte forslaget om lagring i nettleseren, men det kom med en kostnad i form av tid på implemetering og kodeforstålese.I tillegg er dette ekstra kode som skal vedlikeholdes. 
-Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI.
-Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet.
-Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år.
-Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
-Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort.
-Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :)
-Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. 
-Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. 
+Med KI er det veldig lett å bli styrt på gale veier om man ikke er kritisk. Likte forslaget om lagring i nettleseren, men det kom med en kostnad i form av tid på implemetering og kodeforstålese.I tillegg er dette ekstra kode som skal vedlikeholdes. <br> 
+Mot slutten av oppgaven ble man flinkere til å si nei til endringer fra KI. <br>
+Dette gjelder spesielt endringer som medførte endringer i flere filer og som ikke gir brukeren ekstra funksjonalitet. <br>
+Tenker ofte det mest riktige som utvikler er å ikke endre på ting som funker. Dette gjelder spesielt kode som har vært i produksjon over flere år. <br>
+Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. <br>
+Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. <br>
+Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :) <br>
+Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. <br>
+Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. <br>
 Totalt sett har man gjort mye feil, men det er vell faktisk det jeg har lært mest av :)
  
 # Andre kilder
-Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset.
-Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen.
-Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler.
-Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA
+Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset. <br>
+Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen. <br>
+Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler. <br>
+Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA <br>
 https://www.tutorialspoint.com/article/how-to-select-a-random-element-from-a-chash-list
 
 ## Bilder
-Testtilfelle: Spillhylle i forskjellige breder.
-Steg: Tok skjermbilder av forskjellige skjermbredde
-Forventet resultat: Spillhylla kan brukes på både smal skjerm (mobil) og bred skjerm.
+Testtilfelle: Spillhylle i forskjellige breder. <br>
+Steg: Tok skjermbilder av forskjellige skjermbredde <br>
+Forventet resultat: Spillhylla kan brukes på både smal skjerm (mobil) og bred skjerm. <br>
 
 ### Faktisk resultat 375 px: 
 ![Spillhylla på 375 px](../Bilder/375px.png)
