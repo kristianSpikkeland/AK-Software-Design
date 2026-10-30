@@ -40,7 +40,7 @@ har jeg ansett som gunstig.
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```
+```razor
 @page "/games";
 @inject GameApiClient ApiClient
 @inject GameNightState GameNight
@@ -192,7 +192,7 @@ else if (!filteredGames.Any())
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```C#
+```razor
 @inject GameNightState GameNight
 
 <div class= "gameCard">
@@ -239,7 +239,7 @@ GameCard bruker en lettere versjon av DiceRating enn GameDetails. Grunnen til de
 Dette styres av ReadOnly parameteret. 
 
 Utdag fra DiceRating. Komponentens parameter ReadOnly styrer visningen:
-```
+```razor
 @if (ReadOnly == false)
 {
 	<p>Terning skal trilles for spillet 😊</p>
@@ -247,7 +247,7 @@ Utdag fra DiceRating. Komponentens parameter ReadOnly styrer visningen:
 ```
 
 Utdrag fra GameCard. Legg merke til at ReadOnly er true:
-```
+```razor
 <DiceRating BoardGame="BoardGame" @key="BoardGame.Id" Value="BoardGame.Rating" ReadOnly="true" />
 ```
 
@@ -278,7 +278,7 @@ IsSelected og hendelsene OnAdd og OnRemove er parametre som GameCard aldri sette
 <summary>Klikk for å vise mer</summary>
 
 
-```C#
+```razor
 @page "/games/{Id:int}"
 @inject GameApiClient ApiClient
 @inject GameNightState GameNight
@@ -428,7 +428,7 @@ else
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```C#
+```razor
 @inject GameApiClient ApiClient
 
 <h3>Terningkast 🎲</h3>
@@ -545,7 +545,7 @@ Om nettleser lukkes og åpnes igjen så er tilstanden fortsatt lagret.
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```C#
+```razor
 @page "/game-night";
 @inject GameNightState GameNight
 @implements IDisposable
@@ -626,7 +626,7 @@ else
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```C#
+```razor
 public class GameNightState(ProtectedLocalStorage storage)
 {
     public int Count => games.Count;
@@ -752,6 +752,8 @@ public class GameNightState(ProtectedLocalStorage storage)
 ## Oppgave 4
 ### Siden
 ![AdminPage](../Bilder/AdminPageV2.png)
+
+### WebAssembly drøfting
 Angret litt på at man ikke hadde satt opp prosjektet med WebAssembly mal. 
 Da er det enklere å demonstrere faktisk bruk av APIer istedenfor den løsningne jeg startet på der alt ligger på server siden.
 En annen fordel med WebAssembly er at spillkvelden kan kjøres uten internett tilgang. Dette gjelder selvsagt om man ikke bruker API-er for applikasjonen.  
@@ -762,6 +764,7 @@ Da slipper brukeren å vente og føle at brukergrensesnittet ikke responderer.
 Fikk laget en KI instruks for ombygging til WebAssembly, men tok en vurdering av at det ble for omfattende. Nettleserlagringen måtte blant annet bli bygd om. Har prøvd en gang tidligere å bygge om, men det ble ingen suksess.
 Kunne ha startet et nytt prosjekt på riktig måte og kopiert over filer, men da ville mye av git historikken gått tapt. 
 
+### Tjenester og DTO
 For ryddighetens skyld laget jeg en mappe med navn Client der klient kode skal ligge. 
 
 ServerGamesService er en klasse som funker som et Service lag mellom dataen min og klienten.
@@ -778,7 +781,7 @@ Dette skulle senere by på problemer relatert til at komponenetene mine bruker B
 For API delen av oppgaven skrev man opprinnelig mye av koden selv. Men trengte senere en del hjelp for å få implementert APIene i eksisterende kode (Games og GamesDetails). 
 Vedlegget: fra-blazor-server-til-interactive-auto-ren.md har vært en god hjelp under denne delen av oppgaven.
 
-
+### Filter
 Under litt drøftinger rundt teoridelen av oppgaven fikk man tips om å flytte ut filteret fra GamesStorageAndQuery klassen. 
 Her er argumentasjonen jeg fikk: 
 Én ting å tenke på: testene i Oppgave1.cs tester FilterGames i GamesStorageAndQuery. Flytter du filtreringen til komponenten, mister du disse testene, og oppgave 5 krever minst tre tester av logikk utenfor komponentene.
@@ -787,6 +790,7 @@ Et vanlig grep er å flytte filtreringen og tilfeldig valg til en egen liten kla
 Synes dette virket ryddig. Hadde blitt litt uryddig å lage et API for å hente spillene for så å gå direkte til "datakilden" for å hente fileteret.
 Begynte å injecte dette filteret i Games, men fikk råd om å heller bruke static for å slippe injecting og registrering i Program.cs.
 
+### DTO til BoardGame 
 Havnet i en ny problemstilling der spillhylla og mange komponenter bruker BoardGame mens APIet bruker DTO. Drøftet litt med KI og vurderte rådene jeg fikk som stort sett fornuftige.
 Utdeling av Id ble flyttet ut til datakilden slik som en database. Med formål om at konvertering fra DTO til BoardGame ikke skal bruke opp Id. 
 Men da man skulle begynne på ombyggingen reagerte man på at KI bare ville fjerne hele konstruktøren. Dette var jo et bevist designvalg jeg hadde valgt helt fra starten.
@@ -806,6 +810,7 @@ For akkurat denne typen applikasjon anser jeg i ettertid at det sannsynligvis ha
 Velger å ikke gå tilbake på DTO designvalget da det er verdifull kunnskap å kunne arbeide med DTOer og få prosjekterfaring med slike objekter.
 Det å velge hvilke data som sendes har ofte en verdi.
 
+### Rating
 Under arbeidet med oppdatering av vurdering (rating) møtte man på enklete utfordringer knyttet til arkitektur. Jeg laget en egen UpdateRatingRequest og et eget endepunkt for oppdatering av rating.
 Uheldigvis hadde dette endepunktet samme adresse som det andre oppdateringspunktet for oppdatering av kategori så det funket dårlig.
 Fikk råd av KI om at man kan lage kun en UpdateGameRequest med flere egenskaper og slå sammen de to oppdateringsendepunktene. Ulempen da er at man i mange tilfeller sender over mer data enn man trenger.
@@ -820,6 +825,7 @@ men det er greit å lære seg beste praksis. Fikk derfor laget en instruksjon om
 Har satt hele i hermetegn siden jeg gjerne skulle laget en egen plass de admin skriver beskrivelse for spillet. Men dette ble det ikke tid til/prioritert. Tegninger av sidene var hentet ut på dette stadie.
 Se vedleggsmappa og Ombygging-retur-av-spill-POST-og-PUT.pdf 
 
+### Mulig forbedring API kall
 Etter denne ombyggingen hadde jeg på følelsen at Rating hentingen kunne forenkles og kjørte propmten:
 Kan man bygge om hentingen av rating med API enklere nå etter at det nye oppdateringspunktet er lagret. Er det lurt?
 
@@ -827,10 +833,12 @@ Svar: Kort oppsummert kunne API kallene for spillhylla blitt betydelig færre. D
 
 Anser det egentlig som en godt endring, men velger å la den ligge. Hadde gjort endringen om kode skulle ut i produksjon. Legger ved en ombyggingsinstruks for min egen del kalt: Ombygging-totalvurdering-i-GameDTO.pdf
 
+### PlayTimeMinutes
 Drøftet litt rundt PlayTimeMinutes. 
 Der gikk jeg for en variant som viser faktisk spilltid i forhold til registrering ved knappetrykk. Men fikk beskjed av KI om at det sannsynligvis skulle være et estimat.
 Det hadde jo vært betydelig enklere om man hadde tolket det slik fra starten :) Hadde spart meg for en del tid. 
 
+### Totalvurderinger
 Begynte å implementere logikk for totalvurdering. Laget en egen liste for totalvurderinger i datalaget og metode for å hente ut totalvurdering av id. 
 I domene klassen la jeg til en teller som teller oppover for hver gang en vurdering blir laget. 
 På serversiden i klassen ServerGamesService returnerte jeg bare direkte fra datalaget. Så blir egentlig bare et unødvendig ledd, men lot det gå da man kan bygge opp med mer logikk/validering senere.
@@ -860,7 +868,7 @@ Spillhylla bruker ikke parametre fra url for å velge hva som vises. Derfor pass
 
 Selve koden ser slik ut etter at APIet har blitt implementert:
 
-```
+```C#
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -983,7 +991,7 @@ Viktig! Har fått hjelp av Claude rundt teroidelen av denne oppgaven for å sikr
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```C#
+```razor
 @page "/admin/games"
 @inject GameApiClient ApiClient
 
@@ -1235,7 +1243,7 @@ else
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```
+```C#
 // Creates a group. Authorization can be added later
 var gamesApi = app.MapGroup("/api/games");
 
@@ -1352,7 +1360,7 @@ gamesApi.MapDelete("{id:int}", async (int id, ServerGamesService gamesService) =
 <details>
 <summary>Klikk for å vise mer</summary>
 
-```
+```C#
 public sealed class GameApiClient(HttpClient http)
 {
     public async Task<BoardGame> CreateGameAsync(CreateGameRequest request)
@@ -1705,7 +1713,7 @@ Se ReadmeTests.md i Readme mappen
 * Mitt sekvensdiagram er sterkt påvirket av eksempelet man fikk, men likte det veldig godt. Ryddig å få et overblikk over dataflyten. 
 * Mye kvalitetskontroll av eget arbeid for å sikte forståelse og oppfylleslse av krav i oppgavetekst.
 * Spore fremdrift. Hvor mange prosent som gjenstår for hver oppgave. 
-* Hjelp til eksempler for kolapsing av innhold i Readme fil.
+* Litt Readme spørsmål Blant annet hjelp til eksempler for kolapsing av innhold i Readme fil.
 
 ## KI refleksjoner
 Videreutvikling av forslag man har fått fra KI har vært viktig. Det er jeg som har styrt designet av løsningen. Noen eksempler på ting som ble endret etter KI svar:
@@ -1723,11 +1731,11 @@ Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men 
 Totalt sett har man gjort mye feil, men det er vell faktisk det jeg har lært mest av :)
  
 # Andre kilder
-Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset. <br>
-Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen. <br>
-Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler. <br>
-Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA <br>
-https://www.tutorialspoint.com/article/how-to-select-a-random-element-from-a-chash-list
+* Har fått god hjelp av et Blazor kurs på nettside Dometrain. Søkefunksjonen etter spill er bygd med kode presentert i dette kurset. <br>
+* Ellers har undervsningen til Ali vært uvurdeelig. Kjempeopplegg. Har lært mye. Mye kode følger akkurat samme mønster som er vist i undervisnigen. <br>
+* Det har vært veldig fint å kunne gå tilbake for å se på opptak fra tidligere samlinger med gode kodeeksempler. <br>
+* Fin video om xUnit testing: https://www.youtube.com/watch?v=VXSqNCso3fA <br>
+
 
 ## Bilder
 Testtilfelle: Spillhylle i forskjellige breder. <br>
