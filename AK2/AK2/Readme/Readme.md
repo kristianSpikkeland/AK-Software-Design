@@ -21,6 +21,7 @@ dotnet test
 * For mer detajert KI bruk med blant annet spørsmål og svar. Se fil med navn: AI_Q&A.md <br>
 * For PDFer som KI har produsert til meg se vedleggsmappen. [Vedleggsmappen](../../Vedlegg/) <br>
 * I vedleggsmappen ligger også tegninger relatert til oppgave 5. <br>
+* Dokumentasjon relatert til tester ligger i file ReadmeTests.md
 * Generell KI bruk og refleksjoner er gjort rede for mot slutten av dette dokumentet. <br>
 
 ## Oppgave 1
@@ -1726,8 +1727,8 @@ Dette gjelder spesielt endringer som medførte endringer i flere filer og som ik
 Da har man fått luket bort de rareste kanttilfeller og sikret stabilitet. Store endringer vil kunne gå utover stabilitenen og introdusere nye bugs. 
 * Tenker jeg burde i en del tilfeller bli flinkere til å legge til "gjør minst mulig endringer" når jeg prompter KI for at ikke de gode tankene mine vaskes bort. 
 * Språkmodellene har blitt mer kritiske og det er enkelt å forkaste egne gode ideer om man lar seg lede bort. De tidlige dagene med ChatGpt var noe helt annet. Da var alt man gjorde fantastisk :) 
-* Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre ikke. 
-Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den da det ikke er kode man føler eierskap til. 
+* Kode rundt lagring i nettleser og denne live telleren for spillminutter var kode jeg fikk fra KI. Hadde håpet at man skulle få god tid på slutten til å forstå koden godt, men det ble det dessverre mindre tid enn ønsket. 
+Likte konseptet rundt nettleserlagring og føler det har gitt meg kunnskap. Men akkurat den telleren oppover er noe man evt. får komme tilbake til ved en senere anledning. Kunne kanskje bare slettet den men jeg føler eierskap til designet. 
 Totalt sett har man gjort mye feil, men det er vell faktisk det jeg har lært mest av :)
  
 # Andre kilder
