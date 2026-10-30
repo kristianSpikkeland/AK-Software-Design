@@ -966,6 +966,11 @@ Fikk påpekning av KI om at valideringsreglen på klientsiden er strengere enn p
 
 Fikk hjelp av KI til å få forklart catch flyten.
 
+### Suksesshåndtering
+Om spillet lykkes med å bli opprettet følges en annen rute. For oppgave 5 valgte jeg å lage en dataflyt for vellykket opprettelse av spill. Kommentarer til diagrammet kommer senere.
+
+![Sekvensdiagram](../Bilder/SekvensdiagramSpillopprettelse.png)
+
 ### Teoridel oppgave 4
 #### Livssyklusmetode spillhylle
 Som livssyklusmetode for spillhyllen valgte jeg OnInitializedAsync.
